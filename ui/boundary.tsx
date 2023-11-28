@@ -45,12 +45,12 @@ export const Boundary = ({
         'p-3 lg:p-5': size === 'small',
         'p-4 lg:p-9': size === 'default',
         'border-gray-700': color === 'default',
-        'border-vercel-pink': color === 'pink',
-        'border-vercel-blue': color === 'blue',
+        'border-backpack-pink': color === 'pink',
+        'border-backpack-navy': color === 'blue',
         'border-vercel-cyan': color === 'cyan',
         'border-vercel-violet': color === 'violet',
         'border-vercel-orange': color === 'orange',
-        'text-vercel-pink animate-[rerender_1s_ease-in-out_1]':
+        'text-backpack-pink animate-[rerender_1s_ease-in-out_1]':
           animateRerendering,
       })}
     >

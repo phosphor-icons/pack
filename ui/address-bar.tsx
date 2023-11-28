@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Package } from '@phosphor-icons/react/dist/ssr';
+import { Backpack } from '@phosphor-icons/react/dist/ssr';
 
 function Params() {
   const searchParams = useSearchParams()!;
@@ -42,7 +42,7 @@ export function AddressBar() {
   return (
     <div className="flex items-center gap-x-2 p-3.5 lg:px-5 lg:py-3">
       <div className="text-gray-600">
-        <Package className="p-1 rounded-md bg-vercel-orange" color="black" weight="fill" size="2em" />
+        <Backpack className="p-1 rounded-md bg-backpack-pink text-backpack-navy" weight="fill" size="2em" />
       </div>
       <div className="flex gap-x-1 text-sm font-medium">
         <div>

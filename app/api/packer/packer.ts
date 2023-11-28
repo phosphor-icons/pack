@@ -135,26 +135,10 @@ class FontSubset {
     this.names = new Set(names.filter(Boolean));
   }
 
-  packageVersion(): string {
-    return !!this.version ? `web@${this.version}` : 'web';
-  }
-
   fontName(): string {
     return this.weight === 'regular'
       ? 'Phosphor'
       : `Phosphor-${this.weight.replace(/^\w/, (c) => c.toUpperCase())}`;
-  }
-
-  fontURL(): string {
-    return `${CDN_BASE_URL}/${this.packageVersion()}/src/${
-      this.weight
-    }/${this.fontName()}.ttf`;
-  }
-
-  selectionURL() {
-    return `${CDN_BASE_URL}/${this.packageVersion()}/src/${
-      this.weight
-    }/selection.json`;
   }
 
   glyphName(iconName: string): string {
@@ -248,34 +232,6 @@ class FontSubset {
     }
   }
 
-  private async getSelectionFromCDN(): Promise<IcoMoonSelection> {
-    const res = await fetch(this.selectionURL(), {
-      method: 'GET',
-      mode: 'cors',
-      cache: 'default',
-    });
-
-    if (res.status !== 200) {
-      throw new Error(res.statusText);
-    }
-
-    return (await res.json()) as IcoMoonSelection;
-  }
-
-  private async getFontFromCDN(): Promise<ArrayBuffer> {
-    const res = await fetch(this.fontURL(), {
-      method: 'GET',
-      mode: 'cors',
-      cache: 'default',
-    });
-
-    if (res.status !== 200) {
-      throw new Error(res.statusText);
-    }
-
-    return res.arrayBuffer();
-  }
-
   private async generateCSS(
     formats: FontEditor.FontType[],
     buffer?: ArrayBuffer | null,
@@ -310,7 +266,6 @@ class FontSubset {
 
     const buffer = await CACHE.getFont(this.weight, this.version);
     const codePoints = Array.from(this.codes.values()).flat();
-    console.log(codePoints);
 
     const fonts = formats.reduce<
       Partial<Record<FontEditor.FontType, ArrayBuffer>>

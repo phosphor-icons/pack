@@ -14,7 +14,6 @@ export default async function Page() {
           'tipi',
           'virus',
           'tooth',
-          'tree-palm',
           'usb',
         ],
       },
@@ -27,6 +26,7 @@ export default async function Page() {
     <div className="space-y-8">
       <h1 className="text-xl font-medium text-gray-300">Generate</h1>
       <button onClick={go}>GENERATE IT</button>
+      <input type="checkbox" className="accent-backpack-burgundy" />
     </div>
   );
 }
