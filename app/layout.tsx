@@ -6,15 +6,14 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Next.js App Router',
-    template: '%s | Next.js App Router',
+    default: 'Pack',
+    template: '%s | Pack',
   },
-  description:
-    'A playground to explore new Next.js App Router features such as nested layouts, instant loading states, streaming, and component level data fetching.',
+  description: 'A webfont stripping tool from the creators of Phosphor Icons.',
   openGraph: {
-    title: 'Next.js App Router Playground',
+    title: 'Pack',
     description:
-      'A playground to explore new Next.js App Router features such as nested layouts, instant loading states, streaming, and component level data fetching.',
+      'A webfont stripping tool from the creators of Phosphor Icons.',
     images: [`/api/og?title=Next.js App Router`],
   },
   twitter: {
@@ -30,8 +29,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="[color-scheme:dark]">
       <body className="bg-gray-1100 overflow-y-scroll bg-[url('/grid.svg')] pb-36">
-        <GlobalNav />
-
         <div className="lg:pl-72">
           <div className="mx-auto max-w-4xl space-y-8 px-2 pt-20 lg:px-8 lg:py-8">
             <div className="bg-vc-border-gradient rounded-lg p-px shadow-lg shadow-black/20">

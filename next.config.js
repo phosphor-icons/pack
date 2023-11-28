@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  experimental: {
+    serverActions: { allowedOrigins: ['*'] },
+    esmExternals: true,
+  },
+};
 
 module.exports = nextConfig;
