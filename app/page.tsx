@@ -1,32 +1,12 @@
 'use client';
 
-import { createStrippedFont } from '#/app/api/packer';
+import { RecoilRoot } from 'recoil';
+import { Main } from '#/ui/main';
 
-export default async function Page() {
-  async function go() {
-    const css = await createStrippedFont({
-      icons: {
-        duotone: [
-          'hand-tap',
-          'footprints',
-          'cursor-click',
-          'park',
-          'tipi',
-          'virus',
-          'tooth',
-          'usb',
-        ],
-      },
-      formats: ['ttf'],
-      inline: true,
-    });
-    console.log(css);
-  }
+export default function Page() {
   return (
-    <div className="space-y-8">
-      <h1 className="text-xl font-medium text-gray-300">Generate</h1>
-      <button onClick={go}>GENERATE IT</button>
-      <input type="checkbox" className="accent-backpack-burgundy" />
-    </div>
+    <RecoilRoot>
+        <Main />
+    </RecoilRoot>
   );
 }

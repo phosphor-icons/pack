@@ -1,6 +1,6 @@
 import '#/styles/globals.css';
-import { AddressBar } from '#/ui/address-bar';
 import { Metadata } from 'next';
+import { Backpack } from '@phosphor-icons/react/dist/ssr';
 
 export const metadata: Metadata = {
   title: {
@@ -28,13 +28,18 @@ export default function RootLayout({
     <html lang="en" className="[color-scheme:light]">
       <body className="overflow-y-scroll bg-white bg-[url('/grid.svg')] pb-36">
         <div className="mx-auto max-w-4xl space-y-8 px-2 pt-20 lg:px-8 lg:py-8">
-          <div className="rounded-lg bg-white shadow-lg shadow-black/20">
-            <AddressBar />
+          <div className="bg-white shadow-lg shadow-black/20">
+            <div className="flex items-center gap-2 p-3.5">
+              <Backpack
+                className="bg-backpack-pink text-backpack-navy rounded-md p-1"
+                size={32}
+                weight="fill"
+              />
+              <h1>pack</h1>
+            </div>
           </div>
 
-          <div className="rounded-lg bg-white p-3.5 shadow-lg shadow-black/20 lg:p-6">
-            {children}
-          </div>
+          {children}
         </div>
       </body>
     </html>
