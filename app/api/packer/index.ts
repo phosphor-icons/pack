@@ -17,7 +17,10 @@ export async function createStrippedFont(req: FontRequest): Promise<string> {
 
   const packer = new FontPacker(req.icons, req.version);
   const fonts = await packer.generate(req.formats, req.inline);
-  emitTestPage(req, fonts);
+
+  if (process.env.NODE_ENV === 'development') {
+    emitTestPage(req, fonts);
+  }
   return fonts.css;
 }
 
