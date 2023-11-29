@@ -252,6 +252,7 @@ class FontSubset {
         (entry) => entry.icon.tags[0] === matchName,
       );
       if (!entry) {
+        // TODO: aliases
         throw new Error(`Selection match not found for "${matchName}"`);
       }
       this.codes.set(name, entry.properties.codes ?? [entry.properties.code]);
