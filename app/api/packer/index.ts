@@ -3,34 +3,45 @@
 import fs from 'node:fs';
 import { IconWeight } from '@phosphor-icons/react';
 import { FontEditor } from 'fonteditor-core';
-import { FontPacker } from './packer';
+import { FontPacker, CACHE, FontFormatMap, FontPack, SemVer } from './packer';
 
 type FontRequest = {
   icons: Partial<Record<IconWeight, string[]>>;
-  version?: `${number}.${number}.${number}`;
+  version?: SemVer;
   formats?: FontEditor.FontType[];
   inline?: boolean;
 };
 
-export async function createStrippedFont(req: FontRequest): Promise<string> {
+type StaticSizeRequest = {
+  weights: IconWeight[];
+  version?: SemVer;
+};
+
+export async function generateFont(req: FontRequest): Promise<string> {
   'use server';
 
   const packer = new FontPacker(req.icons, req.version);
-  const fonts = await packer.generate(req.formats, req.inline);
+  const pack = await packer.generate(req.formats, req.inline);
 
   if (process.env.NODE_ENV === 'development') {
-    emitTestPage(req, fonts);
+    emitTestPage(req, pack);
   }
-  return fonts.css;
+  return pack.css;
 }
 
-function emitTestPage(
-  req: FontRequest,
-  pack: {
-    fonts: Partial<Record<FontEditor.FontType, ArrayBuffer>>;
-    css: string;
-  },
-) {
+export async function computeStaticSize(
+  req: StaticSizeRequest,
+): Promise<Partial<Record<IconWeight, { font: number; css: number }>>> {
+  const sizes = await Promise.all(
+    req.weights.map((weight) => CACHE.getAssetSize(weight)),
+  );
+  return sizes.reduce((acc, curr, i) => {
+    acc[req.weights[i]] = curr;
+    return acc;
+  }, {} as Partial<Record<IconWeight, { font: number; css: number }>>);
+}
+
+function emitTestPage(req: FontRequest, pack: FontPack) {
   fs.writeFileSync(
     '.tmp/test.html',
     `\
@@ -66,5 +77,6 @@ function emitTestPage(
 </html>
 `,
   );
-  fs.writeFileSync('.tmp/bold.ttf', String(pack.fonts.ttf!));
+  fs.writeFileSync('.tmp/Phosphor.ttf', String(pack.fonts.ttf!));
+  fs.writeFileSync('.tmp/style.css', String(pack.css));
 }

@@ -1,17 +1,23 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import { SetterOrUpdater } from 'recoil';
+import { IconWeight } from '@phosphor-icons/react';
+import clsx from 'clsx';
 import { IconEntry, SelectionEntry } from '#/types';
 import Selecto from './selecto';
 
 type SelectorProps = {
+  weight: IconWeight;
   entries: ReadonlyArray<IconEntry>;
-  onSelect: (entries: SelectionEntry[]) => void;
+  selections: Partial<Record<IconWeight, Set<string>>>;
+  onSelect: SetterOrUpdater<Partial<Record<IconWeight, Set<string>>>>;
 };
 
 export const Selector = (props: SelectorProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const selectoRef = useRef<Selecto>(null);
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -23,7 +29,7 @@ export const Selector = (props: SelectorProps) => {
   return (
     <div
       ref={containerRef}
-      className="overflow-y-auto p-3 cursor-crosshair"
+      className="cursor-crosshair overflow-y-auto p-3"
       style={{ height: 396 }}
     >
       <Selecto
@@ -44,11 +50,8 @@ export const Selector = (props: SelectorProps) => {
             el.classList.remove('bg-backpack-pink');
           });
 
-          const selections = e.selected.map<SelectionEntry>((el) => ({
-            name: el.id,
-            weight: 'regular',
-          }));
-          props.onSelect(selections);
+          const selections = new Set(e.selected.map((el) => el.id));
+          props.onSelect((s) => ({ ...s, [props.weight]: selections }));
         }}
         onScroll={({ direction }) => {
           containerRef.current!.scrollBy(direction[0] * 10, direction[1] * 10);
@@ -74,14 +77,19 @@ export const Selector = (props: SelectorProps) => {
         toggleContinueSelect={['shift']}
         ratio={0}
       />
-      <div id="selecto1" className="flex flex-wrap justify-items-center gap-4">
+      <div id="selecto1" className="flex flex-wrap justify-items-center gap-3">
         {props.entries.map((entry) => (
           <entry.Icon
-            className="icon"
+            className={clsx('icon rounded-md p-1', {
+              'bg-backpack-pink': props.selections[props.weight]?.has(
+                entry.name,
+              ),
+            })}
+            weight={props.weight}
             key={entry.name}
             id={entry.name}
             alt={entry.name}
-            size={32}
+            size={40}
           />
         ))}
       </div>

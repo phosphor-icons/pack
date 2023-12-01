@@ -1,11 +1,12 @@
 'use client';
 
-import type { IconEntry, SelectionEntry } from '#/types';
+import type { IconEntry } from '#/types';
 
 import { atom, selector } from 'recoil';
 import { icons as iconData } from '@phosphor-icons/core';
 import * as Phosphor from '@phosphor-icons/react';
 import Fuse from 'fuse.js';
+import { Summary } from '#/utils/summary';
 
 const icons: ReadonlyArray<IconEntry> = iconData.map((entry) => ({
   ...entry,
@@ -24,26 +25,38 @@ export const searchQueryAtom = atom<string>({
   default: '',
 });
 
-export const selectionAtom = atom<SelectionEntry[]>({
+export const selectionAtom = atom<
+  Partial<Record<Phosphor.IconWeight, Set<string>>>
+>({
   key: 'selections',
-  default: [],
+  default: {},
 });
 
 export const reviewSelector = selector({
   key: 'review',
   get: ({ get }) => {
     const selections = get(selectionAtom);
-    return selections.reduce<Partial<Record<Phosphor.IconWeight, string[]>>>(
-      (acc, curr) => {
-        if (acc[curr.weight] == undefined) {
-          acc[curr.weight] = [];
-        }
 
-        acc[curr.weight]!.push(curr.name);
+    const glyphCounts = Object.entries(selections).reduce(
+      (acc, [weight, names]) => {
+        acc[weight as Phosphor.IconWeight] = names.size;
         return acc;
       },
-      {},
+      {} as Partial<Record<Phosphor.IconWeight, number>>,
     );
+    const includedWeights = Object.entries(selections)
+      .filter(([_, count]) => count.size > 0)
+      .map((e) => e[0]) as Phosphor.IconWeight[];
+    const { byteEstimates: inline } = Summary.estimateSize(glyphCounts, true);
+    const { byteEstimates: external } = Summary.estimateSize(
+      glyphCounts,
+      false,
+    );
+    return {
+      glyphCounts,
+      includedWeights,
+      byteEstimates: { inline, external },
+    };
   },
 });
 

@@ -1,18 +1,15 @@
-import fs from 'node:fs';
 import { IconWeight } from '@phosphor-icons/react';
-import { Font, FontEditor } from 'fonteditor-core';
+import { Font, FontEditor, woff2 } from 'fonteditor-core';
 
 const CDN_BASE_URL = 'https://unpkg.com/@phosphor-icons';
 
-export type Version = `${number}.${number}.${number}`;
+export type SemVer = `${number}.${number}.${number}`;
+export type IconWeightMap = Partial<Record<IconWeight, string[]>>;
+export type FontFormatMap = Partial<Record<FontEditor.FontType, ArrayBuffer>>;
 
-type FontCSS = {
-  fontFace: string;
-  iconClasses: string[];
-};
-
-type SubsetResult = FontCSS & {
-  fonts: Partial<Record<FontEditor.FontType, ArrayBuffer>>;
+export type FontPack = {
+  fonts: FontFormatMap;
+  css: string;
 };
 
 type IcoMoonSelection = {
@@ -42,13 +39,14 @@ type IcoMoonSelection = {
   }[];
 };
 
-const CACHE = new (class {
-  private selections: Map<Version, Map<IconWeight, IcoMoonSelection>> =
+export const CACHE = new (class {
+  private selections: Map<SemVer, Map<IconWeight, IcoMoonSelection>> =
     new Map();
-  private fonts: Map<Version, Map<IconWeight, ArrayBuffer>> = new Map();
+  private fonts: Map<SemVer, Map<IconWeight, ArrayBuffer>> = new Map();
+  private css: Map<SemVer, Map<IconWeight, ArrayBuffer>> = new Map();
   constructor() {}
 
-  private packageVersion(version: Version): string {
+  private packageVersion(version: SemVer): string {
     return !!version ? `web@${version}` : 'web';
   }
 
@@ -58,19 +56,25 @@ const CACHE = new (class {
       : `Phosphor-${weight.replace(/^\w/, (c) => c.toUpperCase())}`;
   }
 
-  private fontURL(weight: IconWeight, version: Version): string {
+  private fontURL(weight: IconWeight, version: SemVer): string {
     return `${CDN_BASE_URL}/${this.packageVersion(
       version,
     )}/src/${weight}/${this.fontName(weight)}.ttf`;
   }
 
-  private selectionURL(weight: IconWeight, version: Version) {
+  private cssURL(weight: IconWeight, version: SemVer): string {
+    return `${CDN_BASE_URL}/${this.packageVersion(
+      version,
+    )}/src/${weight}/style.css`;
+  }
+
+  private selectionURL(weight: IconWeight, version: SemVer) {
     return `${CDN_BASE_URL}/${this.packageVersion(
       version,
     )}/src/${weight}/selection.json`;
   }
 
-  async getSelection(weight: IconWeight, version: Version = '2.0.3') {
+  async getSelection(weight: IconWeight, version: SemVer = '2.0.3') {
     let v = this.selections.get(version);
     if (!v) {
       v = new Map();
@@ -96,7 +100,7 @@ const CACHE = new (class {
     return selection;
   }
 
-  async getFont(weight: IconWeight, version: Version = '2.0.3') {
+  async getFont(weight: IconWeight, version: SemVer = '2.0.3') {
     let v = this.fonts.get(version);
     if (!v) {
       v = new Map();
@@ -121,15 +125,49 @@ const CACHE = new (class {
 
     return buffer;
   }
+
+  async getCSS(weight: IconWeight, version: SemVer = '2.0.3') {
+    let v = this.css.get(version);
+    if (!v) {
+      v = new Map();
+      this.css.set(version, v);
+    }
+
+    let css = v.get(weight);
+    if (!css) {
+      const res = await fetch(this.cssURL(weight, version), {
+        method: 'GET',
+        mode: 'cors',
+        cache: 'default',
+      });
+
+      if (res.status !== 200) {
+        throw new Error(res.statusText);
+      }
+
+      css = await res.arrayBuffer();
+      v.set(weight, css);
+    }
+
+    return css;
+  }
+
+  async getAssetSize(weight: IconWeight, version: SemVer = '2.0.3') {
+    const font = (await this.getFont(weight, version)).byteLength;
+    const css = (await this.getCSS(weight, version)).byteLength;
+
+    return { font, css };
+  }
 })();
 
 class FontSubset {
   private names: Set<string>;
   weight: IconWeight;
-  version?: Version;
+  version?: SemVer;
   codes: Map<string, number[]> = new Map();
+  font: FontEditor.Font = Font.create();
 
-  constructor(weight: IconWeight, names: string[], version?: Version) {
+  constructor(weight: IconWeight, names: string[], version?: SemVer) {
     this.weight = weight;
     this.version = version;
     this.names = new Set(names.filter(Boolean));
@@ -147,61 +185,10 @@ class FontSubset {
   }
 
   prefixClass(): string {
-    return this.weight === 'regular' ? 'ph' : `ph-${this.weight}`;
+    return this.weight === 'regular' ? '.ph' : `.ph-${this.weight}`;
   }
 
-  private generateFontFace(
-    formats: FontEditor.FontType[],
-    buffer?: ArrayBuffer | null,
-  ) {
-    const name = this.fontName();
-    const fmts: [extension: string, format: string][] = formats.map((fmt) =>
-      fmt === 'ttf'
-        ? [fmt, 'truetype']
-        : fmt === 'otf'
-        ? [fmt, 'opentype']
-        : [fmt, fmt],
-    );
-
-    const source = buffer
-      ? `url(data:font/${fmts[0][1]};charset=utf-8;base64,${Font.toBase64(
-          buffer,
-        )})`
-      : fmts
-          .map(
-            ([extension, format]) =>
-              `url("<your-path-to>/${name}.${extension}${
-                format === 'svg' ? `#${name}` : ''
-              }") format("${format}")`,
-          )
-          .join(', ');
-
-    return `\
-@font-face {
-    font-family: "${name}";
-    src: ${source};
-    font-weight: normal;
-    font-style: normal;
-    font-display: block;
-}
-.${this.prefixClass()} {
-    /* use !important to prevent issues with browser extensions that change fonts */
-    font-family: "${name}" !important;
-    speak: never;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-  
-    /* Better Font Rendering =========== */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-`;
-  }
-
-  private generateIconClass(name: string) {
+  private generateIconCSS(name: string) {
     const codes = this.codes.get(name);
 
     if (!codes) {
@@ -226,21 +213,10 @@ class FontSubset {
         throw new Error(`Invalid number of code points: ${codes}`);
       }
       return `\
-.${this.prefixClass()}.ph-${name}:before {
+${this.prefixClass()}.ph-${name}:before {
     content: "\\${codes[0].toString(16)}";
 }`;
     }
-  }
-
-  private async generateCSS(
-    formats: FontEditor.FontType[],
-    buffer?: ArrayBuffer | null,
-  ): Promise<FontCSS> {
-    const fontFace = this.generateFontFace(formats, buffer);
-    const iconClasses = Array.from(this.codes.keys()).map((name) =>
-      this.generateIconClass(name),
-    );
-    return { fontFace, iconClasses };
   }
 
   async initialize() {
@@ -259,79 +235,191 @@ class FontSubset {
     }
   }
 
-  async generate(
-    formats: FontEditor.FontType[] = ['woff', 'ttf', 'svg'],
-    inline?: boolean,
-  ): Promise<SubsetResult> {
+  async prepareFont() {
     await this.initialize();
 
     const buffer = await CACHE.getFont(this.weight, this.version);
     const codePoints = Array.from(this.codes.values()).flat();
 
-    const fonts = formats.reduce<
-      Partial<Record<FontEditor.FontType, ArrayBuffer>>
-    >((fonts, format) => {
-      const editor = Font.create(buffer, {
-        type: 'ttf',
-        subset: codePoints,
-        hinting: false,
-        compound2simple: true,
-      });
-      const packed = editor.write({
-        type: format,
-        hinting: false,
-        writeZeroContoursGlyfData: false,
-        metadata: '/*TODO*/',
-        // support: { /*TODO*/ head: {}, hhea: {} },
-        toBuffer: true,
-      });
-      fonts[format] = packed;
-      return fonts;
-    }, {});
+    this.font = Font.create(buffer, {
+      type: 'ttf',
+      subset: codePoints,
+      hinting: false,
+      compound2simple: true,
+    });
+  }
 
-    // TODO: which to inline??
-    const inlineBuffer = inline ? fonts[formats[0]] : null;
-    const css = await this.generateCSS(formats, inlineBuffer);
-    return { fonts, ...css };
+  generateIconsCSS(): string[] {
+    return Array.from(this.codes.keys()).map((name) =>
+      this.generateIconCSS(name),
+    );
   }
 }
 
 export class FontPacker {
   private subsets: FontSubset[];
 
-  constructor(icons: Partial<Record<IconWeight, string[]>>, version?: Version) {
+  constructor(icons: IconWeightMap, version?: SemVer) {
     this.subsets = Object.entries(icons).map(
       ([weight, names]) => new FontSubset(weight as IconWeight, names, version),
     );
   }
 
-  private mergeCSS(packs: SubsetResult[]) {
-    const { faces, classes } = packs.reduce<{
-      faces: string[];
-      classes: string[];
-    }>(
-      (acc, curr) => {
-        acc.faces.push(curr.fontFace);
-        acc.classes.push(...curr.iconClasses);
-        return acc;
-      },
-      { faces: [], classes: [] },
+  private prefixClasses() {
+    return this.subsets.map((subset) => subset.prefixClass()).join(', ');
+  }
+
+  private generatePrefixClassDefinition(
+    fonts: FontFormatMap,
+    buffer?: ArrayBuffer | null,
+  ) {
+    const fmts: [extension: string, format: string][] = Object.keys(fonts).map(
+      (fmt) =>
+        fmt === 'ttf'
+          ? [fmt, 'truetype']
+          : fmt === 'otf'
+          ? [fmt, 'opentype']
+          : fmt === 'eot'
+          ? [fmt, 'embedded-opentype']
+          : [fmt, fmt],
     );
 
-    return [...faces, ...classes].join('\n');
+    const source = buffer
+      ? // TODO: use a preferred format??
+        `url(data:font/${fmts[0][1]};charset=utf-8;base64,${Font.toBase64(
+          buffer,
+        )})`
+      : fmts
+          .map(
+            ([extension, format]) =>
+              `url("<your-path-to>/Phosphor.${extension}${
+                format === 'svg' ? `#Phosphor` : ''
+              }") format("${format}")`,
+          )
+          .join(', ');
+
+    return `\
+@font-face {
+    font-family: "Phosphor";
+    src: ${source};
+    font-weight: normal;
+    font-style: normal;
+    font-display: block;
+}
+
+${this.prefixClasses()} {
+    /* use !important to prevent issues with browser extensions that change fonts */
+    font-family: "Phosphor" !important;
+    speak: never;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+  
+    /* Better Font Rendering =========== */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+`;
+  }
+
+  private mergeCSS(fonts: FontFormatMap, buffer: ArrayBuffer | null) {
+    const classes = this.subsets
+      .map((subset) => subset.generateIconsCSS())
+      .flat()
+      .join('\n');
+
+    return `\
+${this.generatePrefixClassDefinition(fonts, buffer)}
+${classes}
+`;
+  }
+
+  private remapCodePointsIfNeeded() {
+    const RANGE_START = 0xe900;
+    const usedCodes = new Set<number>();
+
+    let i = RANGE_START;
+    function nextAvailableCodePoint() {
+      while (usedCodes.has(i)) {
+        i += 1;
+      }
+
+      return i;
+    }
+
+    this.subsets.forEach((subset) => {
+      for (const [key, codes] of subset.codes) {
+        codes.forEach((codePoint, i) => {
+          if (usedCodes.has(codePoint)) {
+            const newCodePoint = nextAvailableCodePoint();
+
+            const [glyph] = subset.font.find({ unicode: [codePoint] });
+            if (!glyph) {
+              throw new Error(`Glyph for code point 0x${codePoint} not found`);
+            }
+
+            glyph.unicode = [newCodePoint];
+            codes[i] = newCodePoint;
+            usedCodes.add(newCodePoint);
+          } else {
+            usedCodes.add(codePoint);
+          }
+        });
+      }
+    });
   }
 
   async generate(
     formats: FontEditor.FontType[] = ['woff', 'ttf', 'svg'],
     inline?: boolean,
-  ): Promise<{
-    fonts: Partial<Record<FontEditor.FontType, ArrayBuffer>>;
-    css: string;
-  }> {
-    const packs = await Promise.all(
-      this.subsets.map((subset) => subset.generate(formats, inline)),
-    );
-    const css = this.mergeCSS(packs);
-    return { fonts: packs[0].fonts, css };
+  ): Promise<FontPack> {
+    let woff2editor: FontEditor.Woff2;
+    if (formats.includes('woff2') && !woff2.isInited) {
+      woff2editor = await woff2.init();
+    }
+
+    await Promise.all(this.subsets.map((subset) => subset.prepareFont()));
+    this.remapCodePointsIfNeeded();
+
+    let mergedFont: FontEditor.Font;
+    if (this.subsets.length === 1) {
+      mergedFont = this.subsets[0].font;
+    } else if (this.subsets.length > 1) {
+      mergedFont = this.subsets[0].font;
+      for (let i = 1; i < this.subsets.length; i++) {
+        mergedFont = mergedFont.merge(this.subsets[i].font, { scale: 1 });
+      }
+    } else {
+      throw new Error('Font must contain at least 1 glyph!');
+    }
+
+    const fonts = formats.reduce<FontFormatMap>((acc, format) => {
+      if (format === 'woff2') {
+        acc[format] = woff2editor.encode(
+          mergedFont.write({
+            type: 'ttf',
+            hinting: false,
+            writeZeroContoursGlyfData: false,
+            metadata: '' /*TODO*/,
+            toBuffer: true,
+          }),
+        );
+      } else {
+        acc[format] = mergedFont.write({
+          type: format,
+          hinting: false,
+          writeZeroContoursGlyfData: false,
+          metadata: '' /*TODO*/,
+          toBuffer: true,
+        });
+      }
+      return acc;
+    }, {});
+
+    // TODO: preferred font!
+    const css = this.mergeCSS(fonts, inline ? fonts[formats[0]]! : null);
+    return { fonts, css };
   }
 }
