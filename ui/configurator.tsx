@@ -5,7 +5,7 @@ import { useRecoilValue } from 'recoil';
 import { FontEditor } from 'fonteditor-core';
 import { generateFont } from '#/app/api/packer';
 import { selectionAtom } from '#/state';
-import { IconWeight } from '@phosphor-icons/react';
+import { IconStyle } from '@phosphor-icons/core';
 
 export function Configurator() {
   const selections = useRecoilValue(selectionAtom);
@@ -22,9 +22,9 @@ export function Configurator() {
 
   async function requestSubfont() {
     const icons = Object.entries(selections).reduce((acc, [weight, names]) => {
-      acc[weight as IconWeight] = Array.from(names);
+      acc[weight as IconStyle] = Array.from(names);
       return acc;
-    }, {} as Partial<Record<IconWeight, string[]>>);
+    }, {} as Partial<Record<IconStyle, string[]>>);
     const res = await generateFont({
       icons,
       formats: Object.entries({ ttf, otf, woff2, woff, eot, svg })
@@ -138,17 +138,9 @@ export function Configurator() {
               value="inline"
               defaultChecked={output === 'inline'}
             />
-            <span>Single CSS file with inlined font</span>
+            <span>CSS with inlined font(s)</span>
           </label>
-          <label className="ml-2 flex items-center gap-2 ">
-            <input
-              type="radio"
-              name="output"
-              value="preferred"
-              defaultChecked={output === 'preferred'}
-            />
-            <span>Generate font file for preferred font</span>
-          </label>
+
           <label className="ml-2 flex items-center gap-2 ">
             <input
               type="radio"
@@ -156,7 +148,17 @@ export function Configurator() {
               value="external"
               defaultChecked={output === 'external'}
             />
-            <span>Separate CSS and font files</span>
+            <span>CSS and external font(s)</span>
+          </label>
+
+          <label className="ml-2 flex items-center gap-2 ">
+            <input
+              type="radio"
+              name="output"
+              value="preferred"
+              defaultChecked={output === 'preferred'}
+            />
+            <span>Font(s) only</span>
           </label>
         </fieldset>
       </form>

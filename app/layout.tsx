@@ -1,6 +1,5 @@
 import '#/styles/globals.css';
 import { Metadata } from 'next';
-import { Backpack } from '@phosphor-icons/react/dist/ssr';
 
 export const metadata: Metadata = {
   title: {
@@ -30,11 +29,7 @@ export default function RootLayout({
         <div className="mx-auto max-w-4xl space-y-8 px-2 pt-20 lg:px-8 lg:py-8">
           <div className="bg-white shadow-lg shadow-black/20">
             <div className="flex items-center gap-2 p-3.5">
-              <Backpack
-                className="bg-backpack-pink text-backpack-navy rounded-md p-1"
-                size={32}
-                weight="fill"
-              />
+              <i className="ph-fill ph-backpack bg-backpack-pink text-backpack-navy rounded-md p-1 text-2xl" />
               <h1>pack</h1>
             </div>
           </div>

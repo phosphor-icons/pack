@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { IconWeight } from '@phosphor-icons/react';
+import { IconStyle } from '@phosphor-icons/core';
 import {
   filteredQueryResultsSelector,
   reviewSelector,
@@ -15,7 +15,7 @@ import { Configurator } from './configurator';
 
 export const Main = () => {
   const [query, setQuery] = useRecoilState(searchQueryAtom);
-  const [weight, setWeight] = useState<IconWeight>('regular');
+  const [weight, setWeight] = useState<IconStyle>(IconStyle.REGULAR);
   const { glyphCounts } = useRecoilValue(reviewSelector);
   const entries = useRecoilValue(filteredQueryResultsSelector);
   const [selections, setSelection] = useRecoilState(selectionAtom);
@@ -31,7 +31,7 @@ export const Main = () => {
             onChange={(e) => setQuery(e.target.value)}
           />
 
-          <button onClick={() => setWeight('regular')}>
+          <button onClick={() => setWeight(IconStyle.REGULAR)}>
             Regular
             {glyphCounts.regular ? (
               <span className="bg-backpack-pink rounded-md p-1">
@@ -39,7 +39,7 @@ export const Main = () => {
               </span>
             ) : null}
           </button>
-          <button onClick={() => setWeight('thin')}>
+          <button onClick={() => setWeight(IconStyle.THIN)}>
             Thin{' '}
             {glyphCounts.thin ? (
               <span className="bg-backpack-pink rounded-md p-1">
@@ -47,7 +47,7 @@ export const Main = () => {
               </span>
             ) : null}
           </button>
-          <button onClick={() => setWeight('light')}>
+          <button onClick={() => setWeight(IconStyle.LIGHT)}>
             Light{' '}
             {glyphCounts.light ? (
               <span className="bg-backpack-pink rounded-md p-1">
@@ -55,7 +55,7 @@ export const Main = () => {
               </span>
             ) : null}
           </button>
-          <button onClick={() => setWeight('bold')}>
+          <button onClick={() => setWeight(IconStyle.BOLD)}>
             Bold{' '}
             {glyphCounts.bold ? (
               <span className="bg-backpack-pink rounded-md p-1">
@@ -63,7 +63,7 @@ export const Main = () => {
               </span>
             ) : null}
           </button>
-          <button onClick={() => setWeight('fill')}>
+          <button onClick={() => setWeight(IconStyle.FILL)}>
             Fill{' '}
             {glyphCounts.fill ? (
               <span className="bg-backpack-pink rounded-md p-1">
@@ -71,7 +71,7 @@ export const Main = () => {
               </span>
             ) : null}
           </button>
-          <button onClick={() => setWeight('duotone')}>
+          <button onClick={() => setWeight(IconStyle.DUOTONE)}>
             Duotone{' '}
             {glyphCounts.duotone ? (
               <span className="bg-backpack-pink rounded-md p-1">

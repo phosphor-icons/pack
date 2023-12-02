@@ -1,19 +1,19 @@
 'use server';
 
 import fs from 'node:fs';
-import { IconWeight } from '@phosphor-icons/react';
+import { IconStyle } from '@phosphor-icons/core';
 import { FontEditor } from 'fonteditor-core';
 import { FontPacker, CACHE, FontFormatMap, FontPack, SemVer } from './packer';
 
 type FontRequest = {
-  icons: Partial<Record<IconWeight, string[]>>;
+  icons: Partial<Record<IconStyle, string[]>>;
   version?: SemVer;
   formats?: FontEditor.FontType[];
   inline?: boolean;
 };
 
 type StaticSizeRequest = {
-  weights: IconWeight[];
+  weights: IconStyle[];
   version?: SemVer;
 };
 
@@ -31,14 +31,14 @@ export async function generateFont(req: FontRequest): Promise<string> {
 
 export async function computeStaticSize(
   req: StaticSizeRequest,
-): Promise<Partial<Record<IconWeight, { font: number; css: number }>>> {
+): Promise<Partial<Record<IconStyle, { font: number; css: number }>>> {
   const sizes = await Promise.all(
     req.weights.map((weight) => CACHE.getAssetSize(weight)),
   );
   return sizes.reduce((acc, curr, i) => {
     acc[req.weights[i]] = curr;
     return acc;
-  }, {} as Partial<Record<IconWeight, { font: number; css: number }>>);
+  }, {} as Partial<Record<IconStyle, { font: number; css: number }>>);
 }
 
 function emitTestPage(req: FontRequest, pack: FontPack) {
@@ -51,7 +51,7 @@ function emitTestPage(req: FontRequest, pack: FontPack) {
     <style>
       :root {
         font-size: 48px;
-        color: purple;
+        color: darkgreen;
       }
     </style>
     <style>
@@ -77,6 +77,9 @@ function emitTestPage(req: FontRequest, pack: FontPack) {
 </html>
 `,
   );
-  fs.writeFileSync('.tmp/Phosphor.ttf', String(pack.fonts.ttf!));
+
+  for (const fmt of req.formats!) {
+    fs.writeFileSync(`.tmp/Phosphor.${fmt}`, String(pack.fonts[fmt]));
+  }
   fs.writeFileSync('.tmp/style.css', String(pack.css));
 }

@@ -1,10 +1,10 @@
-import { IconWeight } from '@phosphor-icons/react';
+import { IconStyle, icons } from '@phosphor-icons/core';
 import { Font, FontEditor, woff2 } from 'fonteditor-core';
 
 const CDN_BASE_URL = 'https://unpkg.com/@phosphor-icons';
 
 export type SemVer = `${number}.${number}.${number}`;
-export type IconWeightMap = Partial<Record<IconWeight, string[]>>;
+export type IconStyleMap = Partial<Record<IconStyle, string[]>>;
 export type FontFormatMap = Partial<Record<FontEditor.FontType, ArrayBuffer>>;
 
 export type FontPack = {
@@ -40,41 +40,40 @@ type IcoMoonSelection = {
 };
 
 export const CACHE = new (class {
-  private selections: Map<SemVer, Map<IconWeight, IcoMoonSelection>> =
-    new Map();
-  private fonts: Map<SemVer, Map<IconWeight, ArrayBuffer>> = new Map();
-  private css: Map<SemVer, Map<IconWeight, ArrayBuffer>> = new Map();
+  private selections: Map<SemVer, Map<IconStyle, IcoMoonSelection>> = new Map();
+  private fonts: Map<SemVer, Map<IconStyle, ArrayBuffer>> = new Map();
+  private css: Map<SemVer, Map<IconStyle, ArrayBuffer>> = new Map();
   constructor() {}
 
   private packageVersion(version: SemVer): string {
     return !!version ? `web@${version}` : 'web';
   }
 
-  private fontName(weight: IconWeight): string {
+  private fontName(weight: IconStyle): string {
     return weight === 'regular'
       ? 'Phosphor'
       : `Phosphor-${weight.replace(/^\w/, (c) => c.toUpperCase())}`;
   }
 
-  private fontURL(weight: IconWeight, version: SemVer): string {
+  private fontURL(weight: IconStyle, version: SemVer): string {
     return `${CDN_BASE_URL}/${this.packageVersion(
       version,
     )}/src/${weight}/${this.fontName(weight)}.ttf`;
   }
 
-  private cssURL(weight: IconWeight, version: SemVer): string {
+  private cssURL(weight: IconStyle, version: SemVer): string {
     return `${CDN_BASE_URL}/${this.packageVersion(
       version,
     )}/src/${weight}/style.css`;
   }
 
-  private selectionURL(weight: IconWeight, version: SemVer) {
+  private selectionURL(weight: IconStyle, version: SemVer) {
     return `${CDN_BASE_URL}/${this.packageVersion(
       version,
     )}/src/${weight}/selection.json`;
   }
 
-  async getSelection(weight: IconWeight, version: SemVer = '2.0.3') {
+  async getSelection(weight: IconStyle, version: SemVer = '2.0.3') {
     let v = this.selections.get(version);
     if (!v) {
       v = new Map();
@@ -100,7 +99,7 @@ export const CACHE = new (class {
     return selection;
   }
 
-  async getFont(weight: IconWeight, version: SemVer = '2.0.3') {
+  async getFont(weight: IconStyle, version: SemVer = '2.0.3') {
     let v = this.fonts.get(version);
     if (!v) {
       v = new Map();
@@ -126,7 +125,7 @@ export const CACHE = new (class {
     return buffer;
   }
 
-  async getCSS(weight: IconWeight, version: SemVer = '2.0.3') {
+  async getCSS(weight: IconStyle, version: SemVer = '2.0.3') {
     let v = this.css.get(version);
     if (!v) {
       v = new Map();
@@ -152,7 +151,7 @@ export const CACHE = new (class {
     return css;
   }
 
-  async getAssetSize(weight: IconWeight, version: SemVer = '2.0.3') {
+  async getAssetSize(weight: IconStyle, version: SemVer = '2.0.3') {
     const font = (await this.getFont(weight, version)).byteLength;
     const css = (await this.getCSS(weight, version)).byteLength;
 
@@ -162,12 +161,12 @@ export const CACHE = new (class {
 
 class FontSubset {
   private names: Set<string>;
-  weight: IconWeight;
+  weight: IconStyle;
   version?: SemVer;
   codes: Map<string, number[]> = new Map();
   font: FontEditor.Font = Font.create();
 
-  constructor(weight: IconWeight, names: string[], version?: SemVer) {
+  constructor(weight: IconStyle, names: string[], version?: SemVer) {
     this.weight = weight;
     this.version = version;
     this.names = new Set(names.filter(Boolean));
@@ -195,11 +194,13 @@ class FontSubset {
       throw new Error(`Could not find code points for "${name}"`);
     }
 
+    if (codes.length > 2 || codes.length === 0) {
+      throw new Error(`Invalid number of code points for ${name}: ${codes}`);
+    }
+
     if (this.weight === 'duotone') {
-      if (codes.length !== 2) {
-        throw new Error(`Invalid number of code points: ${codes}`);
-      }
-      return `\
+      if (codes.length === 2) {
+        return `\
 .ph-duotone.ph-${name}:before {
     content: "\\${codes[0].toString(16)}";
     opacity: 0.2;
@@ -208,6 +209,12 @@ class FontSubset {
     content: "\\${codes[1].toString(16)}";
     margin-left: -1em;
 }`;
+      } else {
+        return `\
+.ph-duotone.ph-${name}:before {
+  content: "\\${codes[0].toString(16)}";
+}`;
+      }
     } else {
       if (codes.length !== 1) {
         throw new Error(`Invalid number of code points: ${codes}`);
@@ -223,12 +230,23 @@ ${this.prefixClass()}.ph-${name}:before {
     const selection = await CACHE.getSelection(this.weight, this.version);
 
     for (const name of Array.from(this.names)) {
-      const matchName = this.glyphName(name);
-      const entry = selection.icons.find(
-        (entry) => entry.icon.tags[0] === matchName,
+      let matchName = this.glyphName(name);
+      if (name === 'file-search') {
+        matchName = this.glyphName('file-magnifying-glass');
+      }
+
+      let entry = selection.icons.find(
+        (entry) => entry.properties.name === matchName,
       );
       if (!entry) {
-        // TODO: aliases
+        const iconEntry = icons.find((e) => e.alias?.name === name);
+        if (iconEntry) {
+          let matchName = this.glyphName(iconEntry.alias!.name);
+          entry = selection.icons.find(
+            (entry) => entry.properties.name === matchName,
+          );
+          break;
+        }
         throw new Error(`Selection match not found for "${matchName}"`);
       }
       this.codes.set(name, entry.properties.codes ?? [entry.properties.code]);
@@ -259,10 +277,13 @@ ${this.prefixClass()}.ph-${name}:before {
 export class FontPacker {
   private subsets: FontSubset[];
 
-  constructor(icons: IconWeightMap, version?: SemVer) {
-    this.subsets = Object.entries(icons).map(
-      ([weight, names]) => new FontSubset(weight as IconWeight, names, version),
-    );
+  constructor(icons: IconStyleMap, version?: SemVer) {
+    this.subsets = Object.entries(icons)
+      .filter(([_, names]) => !!names.length)
+      .map(
+        ([weight, names]) =>
+          new FontSubset(weight as IconStyle, names, version),
+      );
   }
 
   private prefixClasses() {
@@ -340,13 +361,13 @@ ${classes}
     const RANGE_START = 0xe900;
     const usedCodes = new Set<number>();
 
-    let i = RANGE_START;
+    let next = RANGE_START;
     function nextAvailableCodePoint() {
-      while (usedCodes.has(i)) {
-        i += 1;
+      while (usedCodes.has(next)) {
+        next += 1;
       }
 
-      return i;
+      return next;
     }
 
     this.subsets.forEach((subset) => {
@@ -357,10 +378,16 @@ ${classes}
 
             const [glyph] = subset.font.find({ unicode: [codePoint] });
             if (!glyph) {
-              throw new Error(`Glyph for code point 0x${codePoint} not found`);
+              throw new Error(`Glyph for code point 0x${codePoint} (${key}) not found`);
             }
 
             glyph.unicode = [newCodePoint];
+            {
+              const cmap = subset.font.get().cmap;
+              const idx = cmap[codePoint];
+              delete cmap[codePoint];
+              cmap[newCodePoint] = idx;
+            }
             codes[i] = newCodePoint;
             usedCodes.add(newCodePoint);
           } else {
@@ -401,7 +428,7 @@ ${classes}
           mergedFont.write({
             type: 'ttf',
             hinting: false,
-            writeZeroContoursGlyfData: false,
+            writeZeroContoursGlyfData: true,
             metadata: '' /*TODO*/,
             toBuffer: true,
           }),
@@ -410,7 +437,7 @@ ${classes}
         acc[format] = mergedFont.write({
           type: format,
           hinting: false,
-          writeZeroContoursGlyfData: false,
+          writeZeroContoursGlyfData: true,
           metadata: '' /*TODO*/,
           toBuffer: true,
         });

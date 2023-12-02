@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRecoilValue } from 'recoil';
-import { IconWeight } from '@phosphor-icons/react';
+import { IconStyle } from '@phosphor-icons/core';
 import { computeStaticSize } from '#/app/api/packer';
 import { reviewSelector } from '#/state';
 import { Summary } from '#/utils/summary';
@@ -10,7 +10,7 @@ import { Summary } from '#/utils/summary';
 export function Review() {
   const selections = useRecoilValue(reviewSelector);
   const [staticSizes, setStaticSizes] = useState<Partial<
-    Record<IconWeight, { font: number; css: number }>
+    Record<IconStyle, { font: number; css: number }>
   > | null>(null);
 
   useEffect(() => {
@@ -27,7 +27,6 @@ export function Review() {
     selections.includedWeights[3],
     selections.includedWeights[4],
     selections.includedWeights[5],
-    selections.includedWeights[6],
   ]);
 
   const statistics = useMemo(() => {
@@ -54,11 +53,11 @@ export function Review() {
       numDuotone: selections.glyphCounts.duotone ?? 0,
       estimateInline: Summary.formatBytes(
         selections.byteEstimates.inline.total ?? 0,
-        0,
+        selections.byteEstimates.inline.total ?? 0 > 1_000_000 ? 2 : 0,
       ),
       estimateExternal: Summary.formatBytes(
         selections.byteEstimates.external.total ?? 0,
-        0,
+        selections.byteEstimates.external.total ?? 0 > 1_000_000 ? 2 : 0,
       ),
       staticTotal: Summary.formatBytes(
         staticTotalBytes,
@@ -67,12 +66,12 @@ export function Review() {
       staticTotalBytes,
       savingsInline: Summary.formatBytes(
         savingsInlineBytes,
-        savingsInlineBytes > 1_000_000 ? 2 : 0,
+        Math.abs(savingsInlineBytes) > 1_000_000 ? 2 : 0,
       ),
       savingsInlineBytes,
       savingsExternal: Summary.formatBytes(
         savingsExternalBytes,
-        savingsExternalBytes > 1_000_000 ? 2 : 0,
+        Math.abs(savingsExternalBytes) > 1_000_000 ? 2 : 0,
       ),
       savingsExternalBytes,
     };

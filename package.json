@@ -18,12 +18,11 @@
     "*": "prettier --write --ignore-unknown"
   },
   "dependencies": {
-    "@heroicons/react": "1.0.6",
     "@phosphor-icons/core": "2.0.3",
-    "@phosphor-icons/react": "2.0.15",
+    "@phosphor-icons/web": "2.0.3",
+    "@types/react-virtualized-auto-sizer": "1.0.3",
+    "@types/react-window": "1.8.8",
     "clsx": "1.2.1",
-    "date-fns": "2.29.3",
-    "dinero.js": "2.0.0-alpha.8",
     "fonteditor-core": "2.3.2",
     "fuse.js": "7.0.0",
     "ms": "3.0.0-canary.1",
@@ -31,10 +30,11 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-selecto": "1.26.1",
+    "react-virtualized-auto-sizer": "1.0.20",
+    "react-window": "1.8.10",
     "recoil": "0.7.7",
     "server-only": "0.0.1",
     "styled-components": "6.0.0-beta.2",
-    "use-count-up": "3.0.1",
     "vercel": "32.5.6"
   },
   "devDependencies": {

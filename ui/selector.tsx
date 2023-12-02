@@ -2,16 +2,15 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { SetterOrUpdater } from 'recoil';
-import { IconWeight } from '@phosphor-icons/react';
+import { IconEntry, IconStyle } from '@phosphor-icons/core';
 import clsx from 'clsx';
-import { IconEntry, SelectionEntry } from '#/types';
 import Selecto from './selecto';
 
 type SelectorProps = {
-  weight: IconWeight;
+  weight: IconStyle;
   entries: ReadonlyArray<IconEntry>;
-  selections: Partial<Record<IconWeight, Set<string>>>;
-  onSelect: SetterOrUpdater<Partial<Record<IconWeight, Set<string>>>>;
+  selections: Partial<Record<IconStyle, Set<string>>>;
+  onSelect: SetterOrUpdater<Partial<Record<IconStyle, Set<string>>>>;
 };
 
 export const Selector = (props: SelectorProps) => {
@@ -43,13 +42,6 @@ export const Selector = (props: SelectorProps) => {
           return true;
         }}
         onSelect={(e) => {
-          e.added.forEach((el) => {
-            el.classList.add('bg-backpack-pink');
-          });
-          e.removed.forEach((el) => {
-            el.classList.remove('bg-backpack-pink');
-          });
-
           const selections = new Set(e.selected.map((el) => el.id));
           props.onSelect((s) => ({ ...s, [props.weight]: selections }));
         }}
@@ -70,26 +62,32 @@ export const Selector = (props: SelectorProps) => {
           throttleTime: 30,
           threshold: 0,
         }}
-        innerScrollOptions={true}
+        innerScrollOptions
+        selectByClick
+        selectFromInside
+        toggleContinueSelect="shift"
+        toggleContinueSelectWithoutDeselect="ctrl"
+        continueSelect
+        continueSelectWithoutDeselect
         hitRate={0}
-        selectByClick={true}
-        selectFromInside={false}
-        toggleContinueSelect={['shift']}
         ratio={0}
       />
       <div id="selecto1" className="flex flex-wrap justify-items-center gap-3">
         {props.entries.map((entry) => (
-          <entry.Icon
-            className={clsx('icon rounded-md p-1', {
-              'bg-backpack-pink': props.selections[props.weight]?.has(
-                entry.name,
-              ),
-            })}
-            weight={props.weight}
-            key={entry.name}
+          <i
             id={entry.name}
-            alt={entry.name}
-            size={40}
+            key={entry.name}
+            title={entry.name}
+            className={clsx(
+              `icon rounded-md p-1 text-3xl ph${
+                props.weight === 'regular' ? '' : `-${props.weight}`
+              } ph-${entry.name}`,
+              {
+                'bg-backpack-pink': props.selections[props.weight]?.has(
+                  entry.name,
+                ),
+              },
+            )}
           />
         ))}
       </div>

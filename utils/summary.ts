@@ -1,6 +1,4 @@
-import { IconWeight } from '@phosphor-icons/react';
-
-type EstimateProperty = `${IconWeight}ByteEstimate`;
+import { IconStyle } from '@phosphor-icons/core';
 
 export class Summary {
   constructor(_: never) {}
@@ -21,19 +19,19 @@ export class Summary {
         ? ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
         : ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
 
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
   }
 
   static estimateSize(
-    icons: Partial<Record<IconWeight, number>>,
+    icons: Partial<Record<IconStyle, number>>,
     inline?: boolean,
     formats?: number,
   ): {
-    byteEstimates: Partial<Record<IconWeight | 'total', number>>;
+    byteEstimates: Partial<Record<IconStyle | 'total', number>>;
   } {
     const byteEstimates = Object.entries(icons).reduce<
-      Partial<Record<IconWeight, number>>
+      Partial<Record<IconStyle, number>>
     >((acc, [weight, count]) => {
       switch (weight) {
         case 'fill':
@@ -43,7 +41,7 @@ export class Summary {
           acc[weight] = Summary.estimateCSSSizeDuotone(count, inline, formats);
           break;
         default:
-          acc[weight as IconWeight] = Summary.estimateCSSSizeStandard(
+          acc[weight as IconStyle] = Summary.estimateCSSSizeStandard(
             count,
             inline,
             formats,
