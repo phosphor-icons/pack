@@ -358,36 +358,48 @@ ${classes}
   }
 
   private remapCodePointsIfNeeded() {
-    const RANGE_START = 0xe900;
+    const PUA_START = 0xe000;
+    const PUA_END = 0xf8ff;
+    const SPUA_A_START = 0xf0000;
     const usedCodes = new Set<number>();
 
-    let next = RANGE_START;
+    let next = PUA_START;
     function nextAvailableCodePoint() {
       while (usedCodes.has(next)) {
         next += 1;
+        if (next === PUA_END + 1) {
+          next = SPUA_A_START;
+        }
       }
 
       return next;
     }
 
-    this.subsets.forEach((subset) => {
+    for (const subset of this.subsets) {
       for (const [key, codes] of subset.codes) {
         codes.forEach((codePoint, i) => {
+          const [glyph] = subset.font.find({ unicode: [codePoint] });
+          if (!glyph) {
+            throw new Error(
+              `Glyph for code point 0x${codePoint} (${key}) not found`,
+            );
+          }
+
+          glyph.name = key;
+
           if (usedCodes.has(codePoint)) {
             const newCodePoint = nextAvailableCodePoint();
 
-            const [glyph] = subset.font.find({ unicode: [codePoint] });
-            if (!glyph) {
-              throw new Error(`Glyph for code point 0x${codePoint} (${key}) not found`);
-            }
-
+            // Reassign glyph code point
             glyph.unicode = [newCodePoint];
-            {
-              const cmap = subset.font.get().cmap;
-              const idx = cmap[codePoint];
-              delete cmap[codePoint];
-              cmap[newCodePoint] = idx;
-            }
+
+            // Reassign in cmap
+            const cmap = subset.font.get().cmap;
+            const idx = cmap[codePoint];
+            delete cmap[codePoint];
+            cmap[newCodePoint] = idx;
+
+            // Reassign in local map
             codes[i] = newCodePoint;
             usedCodes.add(newCodePoint);
           } else {
@@ -395,7 +407,7 @@ ${classes}
           }
         });
       }
-    });
+    }
   }
 
   async generate(
@@ -434,13 +446,21 @@ ${classes}
           }),
         );
       } else {
-        acc[format] = mergedFont.write({
-          type: format,
-          hinting: false,
-          writeZeroContoursGlyfData: true,
-          metadata: '' /*TODO*/,
-          toBuffer: true,
-        });
+        try {
+          acc[format] = mergedFont.write({
+            type: format,
+            hinting: false,
+            writeZeroContoursGlyfData: true,
+            metadata: '' /*TODO*/,
+            toBuffer: true,
+          });
+        } catch (e) {
+          console.error(e);
+          console.log(
+            mergedFont.get().glyf[5886],
+            mergedFont.find({ unicode: mergedFont.get().glyf[5886].unicode }),
+          );
+        }
       }
       return acc;
     }, {});

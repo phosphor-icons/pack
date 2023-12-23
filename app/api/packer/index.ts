@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import { IconStyle } from '@phosphor-icons/core';
 import { FontEditor } from 'fonteditor-core';
-import { FontPacker, CACHE, FontFormatMap, FontPack, SemVer } from './packer';
+import { FontPacker, CACHE, FontPack, SemVer } from './packer';
 
 type FontRequest = {
   icons: Partial<Record<IconStyle, string[]>>;
@@ -51,7 +51,7 @@ function emitTestPage(req: FontRequest, pack: FontPack) {
     <style>
       :root {
         font-size: 48px;
-        color: darkgreen;
+        color: #3f51b5;
       }
     </style>
     <style>
@@ -65,7 +65,7 @@ function emitTestPage(req: FontRequest, pack: FontPack) {
           names
             .map(
               (name) =>
-                `<i class="ph${
+                `<i title="${name}" class="ph${
                   weight === 'regular' ? '' : `-${weight}`
                 } ph-${name}"></i>`,
             )
