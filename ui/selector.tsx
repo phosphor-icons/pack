@@ -18,10 +18,22 @@ export const Selector = (props: SelectorProps) => {
   const selectoRef = useRef<Selecto>(null);
 
   const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    const selectAllHandler = (e: KeyboardEvent) => {
+      if ((e.target as Element)?.nodeName === 'INPUT') return;
+      if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        props.onSelect((s) => ({
+          ...s,
+          [props.weight]: new Set(props.entries.map((ent) => ent.name)),
+        }));
+      }
+    };
+    window.addEventListener('keydown', selectAllHandler);
+    return () => window.removeEventListener('keydown', selectAllHandler);
+  }, [props.entries, props.weight]);
 
   if (!isMounted) return null;
 
@@ -72,7 +84,17 @@ export const Selector = (props: SelectorProps) => {
         hitRate={0}
         ratio={0}
       />
-      <div id="selecto1" className="flex flex-wrap justify-items-center gap-3">
+      <div
+        id="selecto1"
+        className="flex flex-wrap justify-items-center gap-3"
+        onKeyDown={(e) => {
+          console.log(e);
+          e.preventDefault();
+          if (e.ctrlKey && e.key === 'a') {
+            console.log('yup');
+          }
+        }}
+      >
         {props.entries.map((entry) => (
           <i
             id={entry.name}
