@@ -1,4 +1,4 @@
-import { IconStyle } from '@phosphor-icons/core';
+import { IconStyle } from "@phosphor-icons/core";
 
 export class Summary {
   constructor(_: never) {}
@@ -8,16 +8,16 @@ export class Summary {
   static formatBytes(
     bytes: number,
     decimals: number = 2,
-    format: 'binary' | 'decimal' = 'decimal',
+    format: "binary" | "decimal" = "decimal",
   ) {
-    if (!+bytes) return '0 Bytes';
+    if (!+bytes) return "0 Bytes";
 
-    const k = format === 'decimal' ? 1000 : 1024;
+    const k = format === "decimal" ? 1000 : 1024;
     const dm = decimals < 0 ? 0 : decimals;
     const sizes =
-      format === 'decimal'
-        ? ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-        : ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'];
+      format === "decimal"
+        ? ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+        : ["B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
 
     const i = Math.floor(Math.log(Math.abs(bytes)) / Math.log(k));
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
@@ -28,16 +28,16 @@ export class Summary {
     inline?: boolean,
     formats?: number,
   ): {
-    byteEstimates: Partial<Record<IconStyle | 'total', number>>;
+    byteEstimates: Partial<Record<IconStyle | "total", number>>;
   } {
     const byteEstimates = Object.entries(icons).reduce<
       Partial<Record<IconStyle, number>>
     >((acc, [weight, count]) => {
       switch (weight) {
-        case 'fill':
+        case "fill":
           acc[weight] = Summary.estimateCSSSizeFill(count, inline, formats);
           break;
-        case 'duotone':
+        case "duotone":
           acc[weight] = Summary.estimateCSSSizeDuotone(count, inline, formats);
           break;
         default:

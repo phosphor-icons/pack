@@ -1,11 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRecoilValue } from 'recoil';
-import { IconStyle } from '@phosphor-icons/core';
-import { computeStaticSize } from '#/app/api/packer';
-import { reviewSelector } from '#/state';
-import { Summary } from '#/utils/summary';
+import { useState, useEffect, useMemo } from "react";
+import { useRecoilValue } from "recoil";
+import { IconStyle } from "@phosphor-icons/core";
+
+import { computeStaticSize } from "#/app/api/packer";
+import { reviewSelector } from "#/state";
+import { Summary } from "#/utils/summary";
+import { Table } from "./table";
+
+import * as styles from "#/styles/review.css";
+import * as dlStyles from "#/styles/dl.css";
 
 export function Review() {
   const selections = useRecoilValue(reviewSelector);
@@ -53,11 +58,11 @@ export function Review() {
       numDuotone: selections.glyphCounts.duotone ?? 0,
       estimateInline: Summary.formatBytes(
         selections.byteEstimates.inline.total ?? 0,
-        selections.byteEstimates.inline.total ?? 0 > 1_000_000 ? 2 : 0,
+        (selections.byteEstimates.inline.total ?? 0) > 1_000_000 ? 2 : 0,
       ),
       estimateExternal: Summary.formatBytes(
         selections.byteEstimates.external.total ?? 0,
-        selections.byteEstimates.external.total ?? 0 > 1_000_000 ? 2 : 0,
+        (selections.byteEstimates.external.total ?? 0) > 1_000_000 ? 2 : 0,
       ),
       staticTotal: Summary.formatBytes(
         staticTotalBytes,
@@ -78,91 +83,106 @@ export function Review() {
   }, [selections, staticSizes]);
 
   return (
-    <div className="px-4 pb-4">
-      <h6 className="mb-2 font-bold">Summary</h6>
-      <div className="flex flex-wrap gap-8">
-        <dl>
-          <dt className="text-sm font-bold">Glyphs</dt>
-          {statistics.numRegular > 0 ? (
-            <dd className="ml-2 text-sm">Regular: {statistics.numRegular}</dd>
-          ) : null}
-          {statistics.numThin > 0 ? (
-            <dd className="ml-2 text-sm">Thin: {statistics.numThin}</dd>
-          ) : null}
-          {statistics.numLight > 0 ? (
-            <dd className="ml-2 text-sm">Light: {statistics.numLight}</dd>
-          ) : null}
-          {statistics.numBold > 0 ? (
-            <dd className="ml-2 text-sm">Bold: {statistics.numBold}</dd>
-          ) : null}
-          {statistics.numFill > 0 ? (
-            <dd className="ml-2 text-sm">Fill: {statistics.numFill}</dd>
-          ) : null}
-          {statistics.numDuotone > 0 ? (
-            <dd className="ml-2 text-sm">Duotone: {statistics.numDuotone}</dd>
-          ) : null}
-        </dl>
-
-        <dl>
-          <dt className="text-sm font-bold">Estimated bundle size</dt>
-          <dl className="ml-2">
-            <dt className="mt-1.5 text-sm">Inlined fonts</dt>
-            <dd className="ml-2 text-sm">Total: {statistics.estimateInline}</dd>
-          </dl>
-          <dl className="ml-2">
-            <dt className="mt-1.5 text-sm">External fonts</dt>
-            <dd className="ml-2 text-sm">CSS: {statistics.estimateExternal}</dd>
-            <dd className="ml-2 text-sm">TTF: TODO</dd>
-          </dl>
-        </dl>
-
-        <dl>
-          <dt className="text-sm font-bold">Complete font size</dt>
-          {staticSizes === null ? null : (
-            <dl className="ml-2">
-              <dt className="mt-1.5 text-sm">@phosphor-icons/web</dt>
-              {Object.entries(staticSizes).map(([weight, sizes]) => (
-                <dd key={weight} className="ml-2 text-sm">
-                  {[weight.replace(/^\w/, (c) => c.toUpperCase())]}:{' '}
-                  {Summary.formatBytes(sizes.font + sizes.css, 0)}
-                </dd>
-              ))}
-              <dd className="ml-2 text-sm">Total: {statistics.staticTotal}</dd>
-            </dl>
-          )}
-        </dl>
-
-        {statistics.staticTotalBytes ? (
-          <dl>
-            <dt className="text-sm font-bold">Estimated savings</dt>
-            <dl className="ml-2">
-              <dt className="mt-1.5 text-sm">Inlined fonts</dt>
-              <dd className="ml-2 text-sm">
-                Total: {statistics.savingsInline} (
-                {(
-                  (statistics.savingsInlineBytes /
-                    statistics.staticTotalBytes) *
-                  100
-                ).toFixed(0)}
-                %)
-              </dd>
-            </dl>
-            <dl className="ml-2">
-              <dt className="mt-1.5 text-sm">External fonts</dt>
-              <dd className="ml-2 text-sm">
-                CSS: {statistics.savingsExternal} (
-                {(
-                  (statistics.savingsExternalBytes /
-                    statistics.staticTotalBytes) *
-                  100
-                ).toFixed(0)}
-                %)
-              </dd>
-              <dd className="ml-2 text-sm">TTF: TODO</dd>
-            </dl>
-          </dl>
+    <div className={styles.container}>
+      <dl className={dlStyles.dl}>
+        <dt className={dlStyles.dt}>Glyphs</dt>
+        {statistics.numRegular > 0 ? (
+          <dd className={dlStyles.dd}>Regular: {statistics.numRegular}</dd>
         ) : null}
-      </div>
+        {statistics.numThin > 0 ? (
+          <dd className={dlStyles.dd}>Thin: {statistics.numThin}</dd>
+        ) : null}
+        {statistics.numLight > 0 ? (
+          <dd className={dlStyles.dd}>Light: {statistics.numLight}</dd>
+        ) : null}
+        {statistics.numBold > 0 ? (
+          <dd className={dlStyles.dd}>Bold: {statistics.numBold}</dd>
+        ) : null}
+        {statistics.numFill > 0 ? (
+          <dd className={dlStyles.dd}>Fill: {statistics.numFill}</dd>
+        ) : null}
+        {statistics.numDuotone > 0 ? (
+          <dd className={dlStyles.dd}>Duotone: {statistics.numDuotone}</dd>
+        ) : null}
+      </dl>
+
+      <Table
+        headings={[
+          { data: "Output" },
+          { data: "Est. bundle size" },
+          { data: "Est. savings" },
+        ]}
+      >
+        <Table.Row
+          cells={[
+            { data: "For embedded fonts" },
+            {
+              data: statistics.staticTotalBytes
+                ? statistics.estimateInline
+                : "N/A",
+            },
+            {
+              data: statistics.staticTotalBytes
+                ? `${statistics.savingsInline} (
+              ${(
+                (statistics.savingsInlineBytes / statistics.staticTotalBytes) *
+                100
+              ).toFixed(0)}
+              %)`
+                : "N/A",
+            },
+          ]}
+        />
+        <Table.Row
+          cells={[
+            { data: "For external fonts" },
+            {
+              data: statistics.staticTotalBytes
+                ? statistics.estimateExternal
+                : "N/A",
+            },
+            {
+              data: statistics.staticTotalBytes
+                ? `${statistics.savingsExternal} (
+              ${(
+                (statistics.savingsExternalBytes /
+                  statistics.staticTotalBytes) *
+                100
+              ).toFixed(0)}
+              %)`
+                : "N/A",
+            },
+          ]}
+        />
+        <Table.Row
+          cells={[
+            { data: "CSS", align: "center" },
+            {
+              data: statistics.staticTotalBytes
+                ? statistics.estimateExternal
+                : "N/A",
+            },
+            {
+              data: statistics.staticTotalBytes
+                ? `${statistics.savingsExternal} (
+              ${(
+                (statistics.savingsExternalBytes /
+                  statistics.staticTotalBytes) *
+                100
+              ).toFixed(0)}
+              %)`
+                : "N/A",
+            },
+          ]}
+        />
+        <Table.Row
+          cells={[
+            { data: "TTF", align: "center" },
+            { data: "TODO" },
+            { data: "TODO" },
+          ]}
+        />
+      </Table>
     </div>
   );
 }

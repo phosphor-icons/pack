@@ -1,20 +1,30 @@
-import '#/styles/globals.css';
-import { Metadata } from 'next';
+import "#/styles/globals.css";
+import { Metadata } from "next";
+import { Manrope } from "next/font/google";
+import * as styles from "./layout.css";
+import "#/styles/global.css.ts";
+import "#/styles/global.css";
+
+const manrope = Manrope({
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pack',
-    template: '%s | Pack',
+    default: "Phosphor Pack",
+    template: "%s | Phosphor Pack",
   },
-  description: 'A webfont stripping tool from the creators of Phosphor Icons.',
+  description: "A webfont stripping tool from the creators of Phosphor Icons.",
   openGraph: {
-    title: 'Pack',
+    title: "Pack",
     description:
-      'A webfont stripping tool from the creators of Phosphor Icons.',
+      "A webfont stripping tool from the creators of Phosphor Icons.",
     images: [`/api/og?title=Next.js App Router`],
   },
   twitter: {
-    card: 'summary_large_image',
+    card: "summary_large_image",
   },
 };
 
@@ -24,18 +34,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="[color-scheme:light]">
-      <body className="overflow-y-scroll bg-white bg-[url('/grid.svg')] pb-36">
-        <div className="mx-auto max-w-4xl space-y-8 px-2 pt-20 lg:px-8 lg:py-8">
-          <div className="bg-white shadow-lg shadow-black/20">
-            <div className="flex items-center gap-2 p-3.5">
-              <i className="ph-fill ph-backpack bg-backpack-pink text-backpack-navy rounded-md p-1 text-2xl" />
-              <h1>pack</h1>
+    <html lang="en" className={manrope.className}>
+      <body className={styles.body}>
+        <main className={styles.main}>
+          <div className={styles.header}>
+            <div className={styles.logo}>
+              <h1 className={styles.name}>Phosphor Backpack</h1>
+              <i className={`${styles.icon} ph-light ph-backpack`} />
             </div>
+            <p className={styles.slug}>
+              Take only the glyphs you need and save majorly on file size
+            </p>
           </div>
-
           {children}
-        </div>
+        </main>
       </body>
     </html>
   );

@@ -1,8 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 .selecto-selection {
-  background: rgba(40, 57, 75, 0.25) !important;
-  border: 1px solid rgba(40, 57, 75) !important;
+  background: rgba(60, 64, 43, 0.2) !important;
+  border: 1px solid #3c402b !important;
+}
+
+::-webkit-scrollbar {
+  width: 8px; /* width of the entire scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* color of the tracking area */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: currentColor; /* color of the scroll thumb */
+  border-radius: 0; /* roundness of the scroll thumb */
+  border: 3px solid transparent; /* creates padding around scroll thumb */
 }
