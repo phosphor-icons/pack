@@ -1,4 +1,6 @@
+import { SerialFontPack } from "#/app/api/packer/packer";
 import { FontEditor } from "fonteditor-core";
+import JSZip from "jszip";
 
 export function downloadFile(blob: Blob, filename: string) {
   const url = window.URL.createObjectURL(blob);
@@ -11,6 +13,19 @@ export function downloadFile(blob: Blob, filename: string) {
   link.click();
   window.URL.revokeObjectURL(url);
   document.body.removeChild(link);
+}
+
+export async function createZip(kit: SerialFontPack): Promise<Blob> {
+  const zip = new JSZip();
+  zip.file("Phosphor.css", kit.css);
+  for (const [fmt, data] of Object.entries(kit.fonts)) {
+    const filename = `Phosphor.${fmt}`;
+    zip.file(filename, data, {
+      binary: true,
+    });
+  }
+
+  return zip.generateAsync({ type: "blob" });
 }
 
 export async function copyToClipboard(text: string) {

@@ -10,8 +10,14 @@ import { configurationAtom, requestStateAtom, selectionAtom } from "#/state";
 import { Button } from "./button";
 import { Loader } from "./loader";
 import { Table } from "./table";
-import { downloadFile, copyToClipboard, mimeTypeForFont } from "#/utils/files";
+import {
+  downloadFile,
+  copyToClipboard,
+  createZip,
+  mimeTypeForFont,
+} from "#/utils/files";
 import * as styles from "#/styles/generator.css";
+import { SerialFontPack } from "#/app/api/packer/packer";
 
 export const Generator = () => {
   const { status, result, error } = useRecoilValue(requestStateAtom);
@@ -57,8 +63,7 @@ export const Generator = () => {
               {
                 data: <i className="ph-bold ph-file"></i>,
               },
-              { data: `Phosphor.${fmt}` },
-              { data: "" },
+              { data: `Phosphor.${fmt}`, span: 2 },
               {
                 data: (
                   <DownloadLink
@@ -73,6 +78,19 @@ export const Generator = () => {
             ]}
           />
         ))}
+        <Table.Row
+          cells={[
+            {
+              data: <i className="ph-bold ph-file-archive"></i>,
+            },
+            { data: "Phosphor.zip" },
+            {
+              data: <ZipLink label="Download all" kit={result} />,
+              align: "right",
+              span: 2,
+            },
+          ]}
+        />
       </Table>
     </div>
   ) : null;
@@ -104,6 +122,19 @@ const DownloadLink = (props: {
 
   return (
     <Button text link onClick={handleDownloadFile}>
+      {props.label}
+    </Button>
+  );
+};
+
+const ZipLink = (props: { label: ReactNode; kit: SerialFontPack }) => {
+  async function handleZipAndDownload() {
+    const zip = await createZip(props.kit);
+    downloadFile(zip, "Phosphor.zip");
+  }
+
+  return (
+    <Button text link onClick={handleZipAndDownload}>
       {props.label}
     </Button>
   );
