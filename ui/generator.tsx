@@ -1,25 +1,111 @@
 "use client";
 
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { ReactNode } from "react";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { FontEditor } from "fonteditor-core";
 import { IconStyle } from "@phosphor-icons/core";
 
 import { generateFont } from "#/app/api/packer";
-import { configurationAtom, cssAtom, selectionAtom } from "#/state";
+import { configurationAtom, requestStateAtom, selectionAtom } from "#/state";
 import { Button } from "./button";
+import { Loader } from "./loader";
+import { Table } from "./table";
+import { downloadFile, copyToClipboard, mimeTypeForFont } from "#/utils/files";
+import * as styles from "#/styles/generator.css";
 
 export const Generator = () => {
-  const css = useRecoilValue(cssAtom);
+  const { status, result, error } = useRecoilValue(requestStateAtom);
+
+  return status === "pending" ? (
+    <div className={styles.centered}>
+      <Loader />
+    </div>
+  ) : status === "error" ? (
+    <div className={styles.centered}>{error}</div>
+  ) : !!result ? (
+    <div className={styles.container}>
+      <p></p>
+      <Table>
+        <Table.Row
+          cells={[
+            {
+              data: <i className="ph-bold ph-file"></i>,
+            },
+            { data: "Phosphor.css" },
+            {
+              data: <CopyLink label="Copy" text={result.css} />,
+              align: "right",
+              width: "100%",
+            },
+            {
+              data: (
+                <DownloadLink
+                  label="Download"
+                  data={result.css}
+                  mimeType="text/css"
+                  filename="Phosphor.css"
+                />
+              ),
+              align: "right",
+            },
+          ]}
+        />
+        {Object.entries(result.fonts).map(([fmt, data]) => (
+          <Table.Row
+            key={fmt}
+            cells={[
+              {
+                data: <i className="ph-bold ph-file"></i>,
+              },
+              { data: `Phosphor.${fmt}` },
+              { data: "" },
+              {
+                data: (
+                  <DownloadLink
+                    label="Download"
+                    data={data}
+                    mimeType={mimeTypeForFont(fmt as FontEditor.FontType)}
+                    filename={`Phosphor.${fmt}`}
+                  />
+                ),
+                align: "right",
+              },
+            ]}
+          />
+        ))}
+      </Table>
+    </div>
+  ) : null;
+};
+
+const CopyLink = (props: { label: ReactNode; text: string }) => {
+  async function handleCopyToClipboard() {
+    return copyToClipboard(props.text);
+  }
 
   return (
-    <div>
-      <textarea
-        readOnly
-        value={css}
-        className="w-full leading-snug"
-        style={{ fontFamily: "monospace", fontSize: 12 }}
-      />
-    </div>
+    <Button text link onClick={handleCopyToClipboard}>
+      {props.label}
+    </Button>
+  );
+};
+
+const DownloadLink = (props: {
+  label: ReactNode;
+  data: Uint8Array | string;
+  mimeType: string;
+  filename: string;
+}) => {
+  function handleDownloadFile() {
+    const type = props.mimeType;
+    const data = new Blob([props.data], { type });
+    downloadFile(data, props.filename);
+  }
+
+  return (
+    <Button text link onClick={handleDownloadFile}>
+      {props.label}
+    </Button>
   );
 };
 
@@ -27,24 +113,37 @@ export const GeneratorActions = () => {
   const selections = useRecoilValue(selectionAtom);
   const { ttf, otf, woff2, woff, eot, svg, output } =
     useRecoilValue(configurationAtom);
-  const setCss = useSetRecoilState(cssAtom);
+  const [request, setRequestState] = useRecoilState(requestStateAtom);
 
   async function requestSubfont() {
+    setRequestState({ status: "pending" });
+
     const icons = Object.entries(selections).reduce<
       Partial<Record<IconStyle, string[]>>
     >((acc, [weight, names]) => {
       acc[weight as IconStyle] = Array.from(names);
       return acc;
     }, {});
-    const res = await generateFont({
-      icons,
-      formats: Object.entries({ ttf, otf, woff2, woff, eot, svg })
-        .filter(([_, v]) => v)
-        .map(([k]) => k as FontEditor.FontType),
-      inline: output === "inline",
-    });
-    setCss(res);
+    try {
+      const result = await generateFont({
+        icons,
+        formats: Object.entries({ ttf, otf, woff2, woff, eot, svg })
+          .filter(([_, v]) => v)
+          .map(([k]) => k as FontEditor.FontType),
+        inline: output === "inline",
+      });
+      setRequestState({ status: "done", result });
+    } catch (e) {
+      setRequestState({
+        status: "error",
+        error: (e as Error).message.toString(),
+      });
+    }
   }
 
-  return <Button onClick={requestSubfont}>Generate</Button>;
+  return (
+    <Button disabled={request.status === "pending"} onClick={requestSubfont}>
+      Generate
+    </Button>
+  );
 };

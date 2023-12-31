@@ -2,11 +2,15 @@ import { style } from "@vanilla-extract/css";
 
 export const table = style({
   width: "100%",
-  tableLayout: "fixed",
+  tableLayout: "auto",
   borderCollapse: "collapse",
+});
+
+export const fixed = style({
+  tableLayout: "fixed",
 });
 
 export const td = style({
   borderTop: "1px solid currentColor",
-  padding: "16px 8px 16px 0",
+  padding: "16px 16px 16px 0",
 });

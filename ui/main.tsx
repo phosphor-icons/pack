@@ -1,31 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { IconStyle } from "@phosphor-icons/core";
-
-import {
-  filteredQueryResultsSelector,
-  reviewSelector,
-  searchQueryAtom,
-  selectionAtom,
-} from "#/state";
 import { Steps } from "./step";
 import { Selector, SelectorActions } from "./selector";
 import { Configurator } from "./configurator";
 import { Review } from "./review";
 import { Generator, GeneratorActions } from "./generator";
+import * as styles from "#/styles/global.css";
+import pkg from "package.json";
+
+const PHOSPHOR_VERSION = pkg.dependencies["@phosphor-icons/web"];
 
 export const Main = () => {
-  const [query, setQuery] = useRecoilState(searchQueryAtom);
-  const [weight, setWeight] = useState<IconStyle>(IconStyle.REGULAR);
-  const { glyphCounts } = useRecoilValue(reviewSelector);
-  const entries = useRecoilValue(filteredQueryResultsSelector);
-  const [selections, setSelection] = useRecoilState(selectionAtom);
-
   return (
     <Steps
-      key={weight}
       steps={[
         {
           title: "Select icons",
@@ -33,14 +20,26 @@ export const Main = () => {
           chilren: <Selector />,
         },
         {
+          title: "Configure font",
+          actions: (
+            <span>
+              based on{" "}
+              <a
+                className={styles.link}
+                href="https://github.com/phosphor-icons/web"
+              >
+                @phosphor-icons/web
+              </a>{" "}
+              <span className={styles.version}>v{PHOSPHOR_VERSION}</span>
+            </span>
+          ),
+          chilren: <Configurator />,
+        },
+        {
           title: "Review font",
           chilren: <Review />,
         },
-        {
-          title: "Configure font",
-          actions: "Phosphor version 2.1.0",
-          chilren: <Configurator />,
-        },
+
         {
           title: "Generate",
           actions: <GeneratorActions />,

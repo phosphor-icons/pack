@@ -1,9 +1,16 @@
-'use server';
+"use server";
 
-import fs from 'node:fs';
-import { IconStyle } from '@phosphor-icons/core';
-import { FontEditor } from 'fonteditor-core';
-import { FontPacker, CACHE, FontPack, SemVer } from './packer';
+import fs from "node:fs";
+import { IconStyle } from "@phosphor-icons/core";
+import { FontEditor } from "fonteditor-core";
+import {
+  FontPacker,
+  CACHE,
+  FontPack,
+  SemVer,
+  SerialFontFormatMap,
+  SerialFontPack,
+} from "./packer";
 
 type FontRequest = {
   icons: Partial<Record<IconStyle, string[]>>;
@@ -17,16 +24,25 @@ type StaticSizeRequest = {
   version?: SemVer;
 };
 
-export async function generateFont(req: FontRequest): Promise<string> {
-  'use server';
+export async function generateFont(req: FontRequest): Promise<SerialFontPack> {
+  "use server";
 
   const packer = new FontPacker(req.icons, req.version);
   const pack = await packer.generate(req.formats, req.inline);
 
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === "development") {
     emitTestPage(req, pack);
   }
-  return pack.css;
+  return {
+    ...pack,
+    fonts: Object.entries(pack.fonts).reduce<SerialFontFormatMap>(
+      (acc, [fmt, buff]) => {
+        acc[fmt as FontEditor.FontType] = new Uint8Array(buff);
+        return acc;
+      },
+      {},
+    ),
+  };
 }
 
 export async function computeStaticSize(
@@ -43,7 +59,7 @@ export async function computeStaticSize(
 
 function emitTestPage(req: FontRequest, pack: FontPack) {
   fs.writeFileSync(
-    '.tmp/test.html',
+    ".tmp/test.html",
     `\
 <!DOCTYPE html>
 <html>
@@ -66,12 +82,12 @@ function emitTestPage(req: FontRequest, pack: FontPack) {
             .map(
               (name) =>
                 `<i title="${name}" class="ph${
-                  weight === 'regular' ? '' : `-${weight}`
+                  weight === "regular" ? "" : `-${weight}`
                 } ph-${name}"></i>`,
             )
-            .join('\n'),
+            .join("\n"),
         )
-        .join('\n')}
+        .join("\n")}
     <h6>Should not render</h6>
   </body>
 </html>
@@ -81,5 +97,5 @@ function emitTestPage(req: FontRequest, pack: FontPack) {
   for (const fmt of req.formats!) {
     fs.writeFileSync(`.tmp/Phosphor.${fmt}`, String(pack.fonts[fmt]));
   }
-  fs.writeFileSync('.tmp/style.css', String(pack.css));
+  fs.writeFileSync(".tmp/style.css", String(pack.css));
 }

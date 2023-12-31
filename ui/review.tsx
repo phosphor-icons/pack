@@ -107,6 +107,7 @@ export function Review() {
       </dl>
 
       <Table
+        fixed
         headings={[
           { data: "Output" },
           { data: "Est. bundle size" },

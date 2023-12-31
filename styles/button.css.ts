@@ -6,11 +6,16 @@ export const button = style({
   appearance: "none",
   background: "none",
   border: "none",
+  color: "inherit",
   cursor: "pointer",
   fontSize: 16,
   fontFamily: "inherit",
   ":hover": {
     outline: `2px solid ${vars.colors.shadow}`,
+  },
+  ":disabled": {
+    cursor: "not-allowed",
+    opacity: 0.7,
   },
 });
 

@@ -1,5 +1,4 @@
 import { style } from "@vanilla-extract/css";
-import { vars } from "./global.css";
 
 export const container = style({
   display: "grid",

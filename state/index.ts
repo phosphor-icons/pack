@@ -4,6 +4,7 @@ import { atom, selector } from "recoil";
 import { icons, IconEntry, IconStyle } from "@phosphor-icons/core";
 import Fuse from "fuse.js";
 import { Summary } from "#/utils/summary";
+import { SerialFontPack } from "#/app/api/packer/packer";
 
 const fuse = new Fuse(icons, {
   keys: [{ name: "name", weight: 4 }, "tags", "categories"],
@@ -55,9 +56,17 @@ export const configurationAtom = atom<ConfigurationState>({
   },
 });
 
-export const cssAtom = atom<string>({
-  key: "css",
-  default: "",
+type RequestStatus = "done" | "pending" | "error";
+
+type RequestState = {
+  status: RequestStatus;
+  result?: SerialFontPack;
+  error?: string;
+};
+
+export const requestStateAtom = atom<RequestState>({
+  key: "request",
+  default: { status: "done" },
 });
 
 export const reviewSelector = selector({

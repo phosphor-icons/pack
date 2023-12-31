@@ -1,4 +1,4 @@
-import { globalStyle, createGlobalTheme } from "@vanilla-extract/css";
+import { globalStyle, createGlobalTheme, style } from "@vanilla-extract/css";
 
 export const vars = createGlobalTheme(":root", {
   colors: {
@@ -11,6 +11,16 @@ export const vars = createGlobalTheme(":root", {
   dimensions: {
     rail: "160px",
   },
+});
+
+export const version = style({
+  background: vars.colors.vellum,
+  padding: "2px 4px",
+  borderRadius: 4,
+});
+
+export const link = style({
+  color: "inherit",
 });
 
 globalStyle(":root", {

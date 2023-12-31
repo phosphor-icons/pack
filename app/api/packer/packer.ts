@@ -1,19 +1,27 @@
-import { IconStyle, icons } from '@phosphor-icons/core';
-import { Font, FontEditor, woff2 } from 'fonteditor-core';
+import { IconStyle, icons } from "@phosphor-icons/core";
+import { Font, FontEditor, woff2 } from "fonteditor-core";
 
-const CDN_BASE_URL = 'https://unpkg.com/@phosphor-icons';
+const CDN_BASE_URL = "https://unpkg.com/@phosphor-icons";
 
 export type SemVer = `${number}.${number}.${number}`;
 export type IconStyleMap = Partial<Record<IconStyle, string[]>>;
 export type FontFormatMap = Partial<Record<FontEditor.FontType, ArrayBuffer>>;
+export type SerialFontFormatMap = Partial<
+  Record<FontEditor.FontType, Uint8Array>
+>;
 
 export type FontPack = {
   fonts: FontFormatMap;
   css: string;
 };
 
+export type SerialFontPack = {
+  fonts: SerialFontFormatMap;
+  css: string;
+};
+
 type IcoMoonSelection = {
-  IcoMoonType: 'selection';
+  IcoMoonType: "selection";
   icons: {
     icon: {
       paths: string[];
@@ -46,12 +54,12 @@ export const CACHE = new (class {
   constructor() {}
 
   private packageVersion(version: SemVer): string {
-    return !!version ? `web@${version}` : 'web';
+    return !!version ? `web@${version}` : "web";
   }
 
   private fontName(weight: IconStyle): string {
-    return weight === 'regular'
-      ? 'Phosphor'
+    return weight === "regular"
+      ? "Phosphor"
       : `Phosphor-${weight.replace(/^\w/, (c) => c.toUpperCase())}`;
   }
 
@@ -73,7 +81,7 @@ export const CACHE = new (class {
     )}/src/${weight}/selection.json`;
   }
 
-  async getSelection(weight: IconStyle, version: SemVer = '2.0.3') {
+  async getSelection(weight: IconStyle, version: SemVer = "2.0.3") {
     let v = this.selections.get(version);
     if (!v) {
       v = new Map();
@@ -83,9 +91,9 @@ export const CACHE = new (class {
     let selection = v.get(weight);
     if (!selection) {
       const res = await fetch(this.selectionURL(weight, version), {
-        method: 'GET',
-        mode: 'cors',
-        cache: 'default',
+        method: "GET",
+        mode: "cors",
+        cache: "default",
       });
 
       if (res.status !== 200) {
@@ -99,7 +107,7 @@ export const CACHE = new (class {
     return selection;
   }
 
-  async getFont(weight: IconStyle, version: SemVer = '2.0.3') {
+  async getFont(weight: IconStyle, version: SemVer = "2.0.3") {
     let v = this.fonts.get(version);
     if (!v) {
       v = new Map();
@@ -109,9 +117,9 @@ export const CACHE = new (class {
     let buffer = v.get(weight);
     if (!buffer) {
       const res = await fetch(this.fontURL(weight, version), {
-        method: 'GET',
-        mode: 'cors',
-        cache: 'default',
+        method: "GET",
+        mode: "cors",
+        cache: "default",
       });
 
       if (res.status !== 200) {
@@ -125,7 +133,7 @@ export const CACHE = new (class {
     return buffer;
   }
 
-  async getCSS(weight: IconStyle, version: SemVer = '2.0.3') {
+  async getCSS(weight: IconStyle, version: SemVer = "2.0.3") {
     let v = this.css.get(version);
     if (!v) {
       v = new Map();
@@ -135,9 +143,9 @@ export const CACHE = new (class {
     let css = v.get(weight);
     if (!css) {
       const res = await fetch(this.cssURL(weight, version), {
-        method: 'GET',
-        mode: 'cors',
-        cache: 'default',
+        method: "GET",
+        mode: "cors",
+        cache: "default",
       });
 
       if (res.status !== 200) {
@@ -151,7 +159,7 @@ export const CACHE = new (class {
     return css;
   }
 
-  async getAssetSize(weight: IconStyle, version: SemVer = '2.0.3') {
+  async getAssetSize(weight: IconStyle, version: SemVer = "2.0.3") {
     const font = (await this.getFont(weight, version)).byteLength;
     const css = (await this.getCSS(weight, version)).byteLength;
 
@@ -173,18 +181,18 @@ class FontSubset {
   }
 
   fontName(): string {
-    return this.weight === 'regular'
-      ? 'Phosphor'
+    return this.weight === "regular"
+      ? "Phosphor"
       : `Phosphor-${this.weight.replace(/^\w/, (c) => c.toUpperCase())}`;
   }
 
   glyphName(iconName: string): string {
-    if (this.weight === 'regular') return iconName;
+    if (this.weight === "regular") return iconName;
     return `${iconName}-${this.weight}`;
   }
 
   prefixClass(): string {
-    return this.weight === 'regular' ? '.ph' : `.ph-${this.weight}`;
+    return this.weight === "regular" ? ".ph" : `.ph-${this.weight}`;
   }
 
   private generateIconCSS(name: string) {
@@ -198,7 +206,7 @@ class FontSubset {
       throw new Error(`Invalid number of code points for ${name}: ${codes}`);
     }
 
-    if (this.weight === 'duotone') {
+    if (this.weight === "duotone") {
       if (codes.length === 2) {
         return `\
 .ph-duotone.ph-${name}:before {
@@ -231,8 +239,8 @@ ${this.prefixClass()}.ph-${name}:before {
 
     for (const name of Array.from(this.names)) {
       let matchName = this.glyphName(name);
-      if (name === 'file-search') {
-        matchName = this.glyphName('file-magnifying-glass');
+      if (name === "file-search") {
+        matchName = this.glyphName("file-magnifying-glass");
       }
 
       let entry = selection.icons.find(
@@ -260,7 +268,7 @@ ${this.prefixClass()}.ph-${name}:before {
     const codePoints = Array.from(this.codes.values()).flat();
 
     this.font = Font.create(buffer, {
-      type: 'ttf',
+      type: "ttf",
       subset: codePoints,
       hinting: false,
       compound2simple: true,
@@ -287,7 +295,7 @@ export class FontPacker {
   }
 
   private prefixClasses() {
-    return this.subsets.map((subset) => subset.prefixClass()).join(', ');
+    return this.subsets.map((subset) => subset.prefixClass()).join(", ");
   }
 
   private generatePrefixClassDefinition(
@@ -296,12 +304,12 @@ export class FontPacker {
   ) {
     const fmts: [extension: string, format: string][] = Object.keys(fonts).map(
       (fmt) =>
-        fmt === 'ttf'
-          ? [fmt, 'truetype']
-          : fmt === 'otf'
-          ? [fmt, 'opentype']
-          : fmt === 'eot'
-          ? [fmt, 'embedded-opentype']
+        fmt === "ttf"
+          ? [fmt, "truetype"]
+          : fmt === "otf"
+          ? [fmt, "opentype"]
+          : fmt === "eot"
+          ? [fmt, "embedded-opentype"]
           : [fmt, fmt],
     );
 
@@ -314,10 +322,10 @@ export class FontPacker {
           .map(
             ([extension, format]) =>
               `url("<your-path-to>/Phosphor.${extension}${
-                format === 'svg' ? `#Phosphor` : ''
+                format === "svg" ? `#Phosphor` : ""
               }") format("${format}")`,
           )
-          .join(', ');
+          .join(", ");
 
     return `\
 @font-face {
@@ -349,7 +357,7 @@ ${this.prefixClasses()} {
     const classes = this.subsets
       .map((subset) => subset.generateIconsCSS())
       .flat()
-      .join('\n');
+      .join("\n");
 
     return `\
 ${this.generatePrefixClassDefinition(fonts, buffer)}
@@ -411,11 +419,11 @@ ${classes}
   }
 
   async generate(
-    formats: FontEditor.FontType[] = ['woff', 'ttf', 'svg'],
+    formats: FontEditor.FontType[] = ["woff", "ttf", "svg"],
     inline?: boolean,
   ): Promise<FontPack> {
     let woff2editor: FontEditor.Woff2;
-    if (formats.includes('woff2') && !woff2.isInited) {
+    if (formats.includes("woff2") && !woff2.isInited) {
       woff2editor = await woff2.init();
     }
 
@@ -431,17 +439,17 @@ ${classes}
         mergedFont = mergedFont.merge(this.subsets[i].font, { scale: 1 });
       }
     } else {
-      throw new Error('Font must contain at least 1 glyph!');
+      throw new Error("Font must contain at least 1 glyph!");
     }
 
     const fonts = formats.reduce<FontFormatMap>((acc, format) => {
-      if (format === 'woff2') {
+      if (format === "woff2") {
         acc[format] = woff2editor.encode(
           mergedFont.write({
-            type: 'ttf',
+            type: "ttf",
             hinting: false,
             writeZeroContoursGlyfData: true,
-            metadata: '' /*TODO*/,
+            metadata: "" /*TODO*/,
             toBuffer: true,
           }),
         );
@@ -451,7 +459,7 @@ ${classes}
             type: format,
             hinting: false,
             writeZeroContoursGlyfData: true,
-            metadata: '' /*TODO*/,
+            metadata: "" /*TODO*/,
             toBuffer: true,
           });
         } catch (e) {
