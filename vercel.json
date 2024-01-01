@@ -1,6 +1,6 @@
 {
   "functions": {
-    "app/api/packer/**/*": {
+    "app/api/packer/index.ts": {
       "maxDuration": 60
     }
   }
