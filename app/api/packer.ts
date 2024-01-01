@@ -5,12 +5,11 @@ import { IconStyle } from "@phosphor-icons/core";
 import { FontEditor } from "fonteditor-core";
 import {
   FontPacker,
-  CACHE,
   FontPack,
   SemVer,
   SerialFontFormatMap,
   SerialFontPack,
-} from "./packer";
+} from "#/utils/packer";
 
 type FontRequest = {
   icons: Partial<Record<IconStyle, string[]>>;
@@ -19,42 +18,38 @@ type FontRequest = {
   inline?: boolean;
 };
 
-type StaticSizeRequest = {
-  weights: IconStyle[];
-  version?: SemVer;
-};
-
-export async function generateFont(req: FontRequest): Promise<SerialFontPack> {
+export async function generateFont(
+  req: FontRequest,
+): Promise<SerialFontPack | Error> {
   "use server";
 
   const packer = new FontPacker(req.icons, req.version);
-  const pack = await packer.generate(req.formats, req.inline);
 
-  if (process.env.NODE_ENV === "development") {
-    emitTestPage(req, pack);
+  try {
+    const pack = await packer.generate(req.formats, req.inline);
+
+    if (process.env.NODE_ENV === "development") {
+      emitTestPage(req, pack);
+    }
+    return {
+      ...pack,
+      fonts: Object.entries(pack.fonts).reduce<SerialFontFormatMap>(
+        (acc, [fmt, buff]) => {
+          acc[fmt as FontEditor.FontType] = new Uint8Array(buff);
+          return acc;
+        },
+        {},
+      ),
+    };
+  } catch (e) {
+    if (e instanceof Error) {
+      return e;
+    } else if (typeof e === "string") {
+      return new Error(e);
+    } else {
+      return new Error("Unknown server error");
+    }
   }
-  return {
-    ...pack,
-    fonts: Object.entries(pack.fonts).reduce<SerialFontFormatMap>(
-      (acc, [fmt, buff]) => {
-        acc[fmt as FontEditor.FontType] = new Uint8Array(buff);
-        return acc;
-      },
-      {},
-    ),
-  };
-}
-
-export async function computeStaticSize(
-  req: StaticSizeRequest,
-): Promise<Partial<Record<IconStyle, { font: number; css: number }>>> {
-  const sizes = await Promise.all(
-    req.weights.map((weight) => CACHE.getAssetSize(weight)),
-  );
-  return sizes.reduce((acc, curr, i) => {
-    acc[req.weights[i]] = curr;
-    return acc;
-  }, {} as Partial<Record<IconStyle, { font: number; css: number }>>);
 }
 
 function emitTestPage(req: FontRequest, pack: FontPack) {

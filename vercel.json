@@ -1,7 +1,12 @@
 {
   "functions": {
-    "app/api/packer/index.ts": {
+    "app/api/packer.ts": {
+      "memory": 2048,
       "maxDuration": 60
+    },
+    "app/api/size.ts": {
+      "memory": 512,
+      "maxDuration": 10
     }
   }
 }

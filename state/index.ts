@@ -4,7 +4,7 @@ import { atom, selector } from "recoil";
 import { icons, IconEntry, IconStyle } from "@phosphor-icons/core";
 import Fuse from "fuse.js";
 import { Summary } from "#/utils/summary";
-import { SerialFontPack } from "#/app/api/packer/packer";
+import { SerialFontPack } from "#/utils/packer";
 
 const fuse = new Fuse(icons, {
   keys: [{ name: "name", weight: 4 }, "tags", "categories"],

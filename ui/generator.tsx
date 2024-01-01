@@ -17,7 +17,7 @@ import {
   mimeTypeForFont,
 } from "#/utils/files";
 import * as styles from "#/styles/generator.css";
-import { SerialFontPack } from "#/app/api/packer/packer";
+import { SerialFontPack } from "#/utils/packer";
 
 export const Generator = () => {
   const { status, result, error } = useRecoilValue(requestStateAtom);
@@ -163,11 +163,18 @@ export const GeneratorActions = () => {
           .map(([k]) => k as FontEditor.FontType),
         inline: output === "inline",
       });
-      setRequestState({ status: "done", result });
+      if (result instanceof Error) {
+        setRequestState({
+          status: "error",
+          error: result.message,
+        });
+      } else {
+        setRequestState({ status: "done", result });
+      }
     } catch (e) {
       setRequestState({
         status: "error",
-        error: (e as Error).message.toString(),
+        error: (e as Error).message ?? e,
       });
     }
   }

@@ -1,6 +1,6 @@
-import { SerialFontPack } from "#/app/api/packer/packer";
-import { FontEditor } from "fonteditor-core";
 import JSZip from "jszip";
+import { FontEditor } from "fonteditor-core";
+import { SerialFontPack } from "./packer";
 
 export function downloadFile(blob: Blob, filename: string) {
   const url = window.URL.createObjectURL(blob);

@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useRecoilValue } from "recoil";
 import { IconStyle } from "@phosphor-icons/core";
 
-import { computeStaticSize } from "#/app/api/packer";
+import { computeStaticSize } from "#/app/api/size";
 import { reviewSelector } from "#/state";
 import { Summary } from "#/utils/summary";
 import { Table } from "./table";
