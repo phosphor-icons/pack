@@ -6,9 +6,7 @@ const CDN_BASE_URL = "https://unpkg.com/@phosphor-icons";
 export type SemVer = `${number}.${number}.${number}`;
 export type IconStyleMap = Partial<Record<IconStyle, string[]>>;
 export type FontFormatMap = Partial<Record<FontEditor.FontType, ArrayBuffer>>;
-export type SerialFontFormatMap = Partial<
-  Record<FontEditor.FontType, Uint8Array>
->;
+export type SerialFontFormatMap = Partial<Record<FontEditor.FontType, string>>;
 
 export type FontPack = {
   fonts: FontFormatMap;
@@ -385,35 +383,45 @@ ${classes}
 
     for (const subset of this.subsets) {
       for (const [key, codes] of subset.codes) {
-        codes.forEach((codePoint, i) => {
-          const [glyph] = subset.font.find({ unicode: [codePoint] });
-          if (!glyph) {
-            throw new Error(
-              `Glyph for code point 0x${codePoint} (${key}) not found`,
-            );
-          }
+        const [glyph] = subset.font.find({ unicode: codes });
+        if (!glyph) {
+          console.log(key, subset.glyphName(key), codes);
+          throw new Error(
+            `Glyph for code point 0x${codes[0]}${
+              codes[1] ? `0x${codes[1]}` : ""
+            } (${subset.glyphName(key)}) not found`,
+          );
+        }
 
-          glyph.name = key;
+        glyph.name = key;
 
+        const newCodes = codes.map((codePoint, i) => {
           if (usedCodes.has(codePoint)) {
             const newCodePoint = nextAvailableCodePoint();
-
-            // Reassign glyph code point
-            glyph.unicode = [newCodePoint];
 
             // Reassign in cmap
             const cmap = subset.font.get().cmap;
             const idx = cmap[codePoint];
+
+            if (subset.weight === IconStyle.DUOTONE) {
+              console.log({ codePoint, idx, codes });
+            }
+
             delete cmap[codePoint];
             cmap[newCodePoint] = idx;
 
             // Reassign in local map
             codes[i] = newCodePoint;
             usedCodes.add(newCodePoint);
+            return newCodePoint;
           } else {
             usedCodes.add(codePoint);
+            return codePoint;
           }
         });
+
+        // Reassign glyph code point
+        glyph.unicode = newCodes;
       }
     }
   }
@@ -464,10 +472,7 @@ ${classes}
           });
         } catch (e) {
           console.error(e);
-          console.log(
-            mergedFont.get().glyf[5886],
-            mergedFont.find({ unicode: mergedFont.get().glyf[5886].unicode }),
-          );
+          throw e;
         }
       }
       return acc;

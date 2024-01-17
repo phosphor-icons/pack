@@ -20,7 +20,7 @@ type FontRequest = {
 
 export async function generateFont(
   req: FontRequest,
-): Promise<SerialFontPack | Error> {
+): Promise<SerialFontPack | { error: string }> {
   "use server";
 
   const packer = new FontPacker(req.icons, req.version);
@@ -35,19 +35,22 @@ export async function generateFont(
       ...pack,
       fonts: Object.entries(pack.fonts).reduce<SerialFontFormatMap>(
         (acc, [fmt, buff]) => {
-          acc[fmt as FontEditor.FontType] = new Uint8Array(buff);
+          acc[fmt as FontEditor.FontType] =
+            Buffer.from(buff).toString("base64");
           return acc;
         },
         {},
       ),
     };
-  } catch (e) {
-    if (e instanceof Error) {
-      return e;
-    } else if (typeof e === "string") {
-      return new Error(e);
+  } catch (error) {
+    console.error(error);
+
+    if (error instanceof Error) {
+      return { error: error.message };
+    } else if (typeof error === "string") {
+      return { error };
     } else {
-      return new Error("Unknown server error");
+      return { error: "Unknown server error" };
     }
   }
 }

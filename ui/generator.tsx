@@ -163,10 +163,10 @@ export const GeneratorActions = () => {
           .map(([k]) => k as FontEditor.FontType),
         inline: output === "inline",
       });
-      if (result instanceof Error) {
+      if ("error" in result) {
         setRequestState({
           status: "error",
-          error: result.message,
+          error: result.error,
         });
       } else {
         setRequestState({ status: "done", result });

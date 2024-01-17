@@ -33,5 +33,5 @@ export async function copyToClipboard(text: string) {
 }
 
 export function mimeTypeForFont(fmt: FontEditor.FontType): string {
-  return `font/${fmt}`;
+  return `font/${fmt};base64`;
 }
