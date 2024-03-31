@@ -79,7 +79,7 @@ export const CACHE = new (class {
     )}/src/${weight}/selection.json`;
   }
 
-  async getSelection(weight: IconStyle, version: SemVer = "2.0.3") {
+  async getSelection(weight: IconStyle, version: SemVer = "2.1.1") {
     let v = this.selections.get(version);
     if (!v) {
       v = new Map();
@@ -105,7 +105,7 @@ export const CACHE = new (class {
     return selection;
   }
 
-  async getFont(weight: IconStyle, version: SemVer = "2.0.3") {
+  async getFont(weight: IconStyle, version: SemVer = "2.1.1") {
     let v = this.fonts.get(version);
     if (!v) {
       v = new Map();
@@ -131,7 +131,7 @@ export const CACHE = new (class {
     return buffer;
   }
 
-  async getCSS(weight: IconStyle, version: SemVer = "2.0.3") {
+  async getCSS(weight: IconStyle, version: SemVer = "2.1.1") {
     let v = this.css.get(version);
     if (!v) {
       v = new Map();
@@ -157,7 +157,7 @@ export const CACHE = new (class {
     return css;
   }
 
-  async getAssetSize(weight: IconStyle, version: SemVer = "2.0.3") {
+  async getAssetSize(weight: IconStyle, version: SemVer = "2.1.1") {
     const font = (await this.getFont(weight, version)).byteLength;
     const css = (await this.getCSS(weight, version)).byteLength;
 
@@ -245,9 +245,9 @@ ${this.prefixClass()}.ph-${name}:before {
         (entry) => entry.properties.name === matchName,
       );
       if (!entry) {
-        const iconEntry = icons.find((e) => e.alias?.name === name);
+        const iconEntry = icons.find((e) => (e as any).alias?.name === name);
         if (iconEntry) {
-          let matchName = this.glyphName(iconEntry.alias!.name);
+          let matchName = this.glyphName((iconEntry as any).alias.name);
           entry = selection.icons.find(
             (entry) => entry.properties.name === matchName,
           );

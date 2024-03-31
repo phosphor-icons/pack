@@ -8,7 +8,10 @@ import { Generator, GeneratorActions } from "./generator";
 import * as styles from "#/styles/global.css";
 import pkg from "package.json";
 
-const PHOSPHOR_VERSION = pkg.dependencies["@phosphor-icons/web"];
+const PHOSPHOR_VERSION = pkg.dependencies["@phosphor-icons/web"].replaceAll(
+  /[<>~*=^]/g,
+  "",
+);
 
 export const Main = () => {
   return (

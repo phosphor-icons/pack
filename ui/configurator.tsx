@@ -150,8 +150,9 @@ export function Configurator() {
         <fieldset name="version" className={fsStyles.fieldset}>
           <legend className={fsStyles.legend}>Version</legend>
           <div className={fsStyles.items}>
-            <select disabled defaultValue="2.0.3" className="self-start">
+            <select disabled defaultValue="2.1.1" className="self-start">
               <option value="2.0.3">2.0.3</option>
+              <option value="2.1.1">2.1.1</option>
             </select>
           </div>
         </fieldset>

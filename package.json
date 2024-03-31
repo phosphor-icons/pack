@@ -17,8 +17,8 @@
     "*": "prettier --write --ignore-unknown"
   },
   "dependencies": {
-    "@phosphor-icons/core": "2.0.3",
-    "@phosphor-icons/web": "2.0.3",
+    "@phosphor-icons/core": "^2.1.1",
+    "@phosphor-icons/web": "^2.1.1",
     "@vanilla-extract/css": "1.14.0",
     "chinooks": "0.2.0",
     "clsx": "1.2.1",
