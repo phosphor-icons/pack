@@ -1,5 +1,6 @@
 {
   "name": "@phosphor-icons/pack",
+  "homepage": "https://pack.phosphoricons.com",
   "private": true,
   "packageManager": "pnpm@8.2.0",
   "scripts": {
@@ -7,7 +8,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "format": "prettier --write --ignore-unknown .",
-    "prettier:check": "prettier --check --ignore-unknown ."
+    "prettier:check": "prettier --check --ignore-unknown .",
+    "predeploy": "pnpm build",
+    "deploy": "gh-pages -d dist"
   },
   "git": {},
   "lint-staged": {
@@ -37,6 +40,7 @@
     "@vitejs/plugin-react": "4.2.1",
     "eslint": "8.30.0",
     "eslint-config-next": "13.1.0",
+    "gh-pages": "^6.1.1",
     "lint-staged": "13.1.0",
     "prettier": "2.8.1",
     "typescript": "5.3.3",

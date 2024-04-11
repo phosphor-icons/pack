@@ -1,9 +1,6 @@
 import { IconStyle } from "@phosphor-icons/core";
 import { FontEditor } from "fonteditor-core";
-import {
-  SemVer,
-  SerialFontPack,
-} from "@/utils/packer";
+import type { SemVer, SerialFontPack } from "@/utils/types";
 
 const VAL_TOWN_ENDPOINT = "https://rektdeckard-FontPack.web.val.run";
 
