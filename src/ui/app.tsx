@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Steps } from "./step";
 import { Selector, SelectorActions } from "./selector";
 import { Configurator } from "./configurator";
@@ -28,7 +29,7 @@ export const App = () => {
           {
             title: "Select icons",
             actions: <SelectorActions />,
-            chilren: <Selector />,
+            chilren: <Suspense fallback={null}><Selector /></Suspense>,
           },
 
           {
