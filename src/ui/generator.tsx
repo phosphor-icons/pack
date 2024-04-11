@@ -3,7 +3,7 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { FontEditor } from "fonteditor-core";
 import { IconStyle } from "@phosphor-icons/core";
 
-import { generateFont } from "@/api/packer";
+import { generateFont } from "@/api/remote";
 import { configurationAtom, requestStateAtom, selectionAtom } from "@/state";
 import { Button } from "./button";
 import { Loader } from "./loader";

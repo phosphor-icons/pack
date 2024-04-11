@@ -36,9 +36,9 @@ export function Review() {
     const staticTotalBytes = !staticSizes
       ? 0
       : Object.values(staticSizes).reduce(
-          (acc, curr) => acc + curr.css + curr.font,
-          0,
-        );
+        (acc, curr) => acc + curr.css + curr.font,
+        0,
+      );
 
     const savingsInlineBytes = selections.byteEstimates.inline.total
       ? staticTotalBytes - selections.byteEstimates.inline.total
@@ -122,12 +122,10 @@ export function Review() {
             },
             {
               data: statistics.staticTotalBytes
-                ? `${statistics.savingsInline} (
-              ${(
-                (statistics.savingsInlineBytes / statistics.staticTotalBytes) *
-                100
-              ).toFixed(0)}
-              %)`
+                ? `${statistics.savingsInline} (${(
+                  (statistics.savingsInlineBytes / statistics.staticTotalBytes) *
+                  100
+                ).toFixed(0)}%)`
                 : "N/A",
             },
           ]}
@@ -142,13 +140,11 @@ export function Review() {
             },
             {
               data: statistics.staticTotalBytes
-                ? `${statistics.savingsExternal} (
-              ${(
-                (statistics.savingsExternalBytes /
-                  statistics.staticTotalBytes) *
-                100
-              ).toFixed(0)}
-              %)`
+                ? `${statistics.savingsExternal} (${(
+                  (statistics.savingsExternalBytes /
+                    statistics.staticTotalBytes) *
+                  100
+                ).toFixed(0)}%)`
                 : "N/A",
             },
           ]}
@@ -163,13 +159,11 @@ export function Review() {
             },
             {
               data: statistics.staticTotalBytes
-                ? `${statistics.savingsExternal} (
-              ${(
-                (statistics.savingsExternalBytes /
-                  statistics.staticTotalBytes) *
-                100
-              ).toFixed(0)}
-              %)`
+                ? `${statistics.savingsExternal} (${(
+                  (statistics.savingsExternalBytes /
+                    statistics.staticTotalBytes) *
+                  100
+                ).toFixed(0)}%)`
                 : "N/A",
             },
           ]}

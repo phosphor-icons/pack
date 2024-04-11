@@ -5,8 +5,6 @@ import type {
   IconStyleMap,
   FontFormatMap,
   FontPack,
-  SerialFontPack,
-  SerialFontFormatMap,
 } from "./types";
 
 const CDN_BASE_URL = "https://unpkg.com/@phosphor-icons";
@@ -42,7 +40,7 @@ export const CACHE = new (class {
   private selections: Map<SemVer, Map<IconStyle, IcoMoonSelection>> = new Map();
   private fonts: Map<SemVer, Map<IconStyle, ArrayBuffer>> = new Map();
   private css: Map<SemVer, Map<IconStyle, ArrayBuffer>> = new Map();
-  constructor() {}
+  constructor() { }
 
   private packageVersion(version: SemVer): string {
     return !!version ? `web@${version}` : "web";
@@ -298,25 +296,24 @@ export class FontPacker {
         fmt === "ttf"
           ? [fmt, "truetype"]
           : fmt === "otf"
-          ? [fmt, "opentype"]
-          : fmt === "eot"
-          ? [fmt, "embedded-opentype"]
-          : [fmt, fmt],
+            ? [fmt, "opentype"]
+            : fmt === "eot"
+              ? [fmt, "embedded-opentype"]
+              : [fmt, fmt],
     );
 
     const source = buffer
       ? // TODO: use a preferred format??
-        `url(data:font/${fmts[0][1]};charset=utf-8;base64,${Font.toBase64(
-          buffer,
-        )})`
+      `url(data:font/${fmts[0][1]};charset=utf-8;base64,${Font.toBase64(
+        buffer,
+      )})`
       : fmts
-          .map(
-            ([extension, format]) =>
-              `url("<your-path-to>/Phosphor.${extension}${
-                format === "svg" ? `#Phosphor` : ""
-              }") format("${format}")`,
-          )
-          .join(", ");
+        .map(
+          ([extension, format]) =>
+            `url("<your-path-to>/Phosphor.${extension}${format === "svg" ? `#Phosphor` : ""
+            }") format("${format}")`,
+        )
+        .join(", ");
 
     return `\
 @font-face {
@@ -380,8 +377,7 @@ ${classes}
         if (!glyph) {
           console.log(key, subset.glyphName(key), codes);
           throw new Error(
-            `Glyph for code point 0x${codes[0]}${
-              codes[1] ? `0x${codes[1]}` : ""
+            `Glyph for code point 0x${codes[0]}${codes[1] ? `0x${codes[1]}` : ""
             } (${subset.glyphName(key)}) not found`,
           );
         }
